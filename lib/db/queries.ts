@@ -2,6 +2,7 @@ import { db } from "./index";
 import { projects, leads } from "./schema";
 import { eq, asc, desc } from "drizzle-orm";
 import type { ProjectData } from "@/components/project-gallery";
+export type { ProjectData };
 
 export async function getVisibleProjects(): Promise<ProjectData[]> {
   try {
@@ -17,6 +18,7 @@ export async function getVisibleProjects(): Promise<ProjectData[]> {
       subtitle: row.subtitle,
       description: row.description,
       url: row.url,
+      previewUrl: row.previewUrl ?? undefined,
       tags: row.tags,
       year: row.year,
       iframeable: row.iframeable,

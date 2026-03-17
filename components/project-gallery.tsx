@@ -13,6 +13,7 @@ export interface ProjectData {
   subtitle: string;
   description: string;
   url: string;
+  previewUrl?: string;
   tags: string[];
   year: string;
   iframeable: boolean;
@@ -585,13 +586,21 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
           >
             <div data-viewer-inner className="w-full h-full relative">
               {activeProject.iframeable && !iframeLoaded && !iframeError && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "rgba(255,255,255,0.15)", borderTopColor: "transparent" }} />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "rgba(255,255,255,0.1)", borderTopColor: "rgba(255,255,255,0.4)" }} />
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <p className="text-sm text-white/40 font-medium">Loading preview</p>
+                    <p className="text-[10px] font-mono text-white/20 tracking-wider">
+                      {(activeProject.previewUrl || activeProject.url).replace(/^https?:\/\//, "")}
+                    </p>
+                  </div>
                 </div>
               )}
               {activeProject.iframeable && !iframeError && (
                 <iframe
-                  src={activeProject.url}
+                  src={activeProject.previewUrl || activeProject.url}
                   className={`w-full h-full border-0 transition-opacity duration-500 ${iframeLoaded ? "opacity-100" : "opacity-0"}`}
                   onLoad={() => { iframeLoadedRef.current = true; setIframeLoaded(true); }}
                   onError={() => setIframeError(true)}
@@ -602,16 +611,22 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
               )}
               {(!activeProject.iframeable || iframeError) && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div
-                    className="w-[75%] max-w-xl aspect-video rounded-xl overflow-hidden relative"
-                    style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
-                  >
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                      <span className="text-3xl md:text-4xl font-bold text-white/[0.06] tracking-tight select-none">
-                        {activeProject.title}
-                      </span>
+                  {activeProject.thumbnail ? (
+                    <div className="w-[80%] max-w-2xl rounded-xl overflow-hidden relative" style={{ border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <img src={activeProject.thumbnail} alt={activeProject.title} className="w-full h-auto" />
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      className="w-[75%] max-w-xl aspect-video rounded-xl overflow-hidden relative"
+                      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
+                    >
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                        <span className="text-3xl md:text-4xl font-bold text-white/[0.06] tracking-tight select-none">
+                          {activeProject.title}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <p className="mt-4 text-white/20 text-xs font-mono">
                     {iframeError ? "Preview could not be loaded." : "Live preview coming soon."}
                   </p>

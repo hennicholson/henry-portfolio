@@ -18,7 +18,7 @@ export async function PATCH(
 
   const updates: Record<string, unknown> = {};
   const allowedFields = [
-    "slug", "title", "subtitle", "description", "url", "tags",
+    "slug", "title", "subtitle", "description", "url", "previewUrl", "tags",
     "year", "iframeable", "span", "accent", "number", "thumbnail",
     "sortOrder", "visible",
   ];

@@ -27,6 +27,7 @@ interface ProjectRow {
   subtitle: string;
   description: string;
   url: string;
+  previewUrl: string | null;
   tags: string[];
   year: string;
   iframeable: boolean;
@@ -136,7 +137,25 @@ function SortableCard({
             />
           </div>
 
-          {/* Row 3: Description */}
+          {/* Row 3: Preview URL + Thumbnail */}
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              value={project.previewUrl || ""}
+              onChange={(e) => onChange(project.id, "previewUrl", e.target.value || null)}
+              placeholder="Iframe preview URL (optional)"
+              className="rounded-lg px-3 py-2 text-xs font-mono text-white/40 outline-none transition-colors focus:border-white/15"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+            />
+            <input
+              value={project.thumbnail || ""}
+              onChange={(e) => onChange(project.id, "thumbnail", e.target.value || null)}
+              placeholder="Thumbnail URL (/thumbnails/...)"
+              className="rounded-lg px-3 py-2 text-xs font-mono text-white/40 outline-none transition-colors focus:border-white/15"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+            />
+          </div>
+
+          {/* Row 4: Description */}
           <textarea
             value={project.description}
             onChange={(e) => onChange(project.id, "description", e.target.value)}
@@ -146,16 +165,29 @@ function SortableCard({
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
           />
 
-          {/* Row 4: Tags */}
-          <input
-            value={project.tags.join(", ")}
-            onChange={(e) =>
-              onChange(project.id, "tags", e.target.value.split(",").map((t) => t.trim()).filter(Boolean))
-            }
-            placeholder="Tags (comma-separated)"
-            className="w-full rounded-lg px-3 py-2 text-xs font-mono text-white/30 outline-none transition-colors focus:border-white/15"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
-          />
+          {/* Row 5: Tags + Iframeable */}
+          <div className="flex gap-3 items-center">
+            <input
+              value={project.tags.join(", ")}
+              onChange={(e) =>
+                onChange(project.id, "tags", e.target.value.split(",").map((t) => t.trim()).filter(Boolean))
+              }
+              placeholder="Tags (comma-separated)"
+              className="flex-1 rounded-lg px-3 py-2 text-xs font-mono text-white/30 outline-none transition-colors focus:border-white/15"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+            />
+            <button
+              onClick={() => onChange(project.id, "iframeable", !project.iframeable)}
+              className="shrink-0 px-3 py-2 rounded-lg text-[10px] font-mono tracking-wider transition-colors"
+              style={{
+                background: project.iframeable ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.03)",
+                border: `1px solid ${project.iframeable ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)"}`,
+                color: project.iframeable ? "rgba(74,222,128,0.6)" : "rgba(255,255,255,0.2)",
+              }}
+            >
+              {project.iframeable ? "IFRAME ON" : "IFRAME OFF"}
+            </button>
+          </div>
         </div>
 
         {/* Actions */}
@@ -237,10 +269,12 @@ export function ProjectsEditor() {
         subtitle: project.subtitle,
         description: project.description,
         url: project.url,
+        previewUrl: project.previewUrl,
         tags: project.tags,
         year: project.year,
         iframeable: project.iframeable,
         span: project.span,
+        thumbnail: project.thumbnail,
         visible: project.visible,
       }),
     });

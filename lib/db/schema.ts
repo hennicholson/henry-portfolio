@@ -15,6 +15,7 @@ export const projects = pgTable("projects", {
   subtitle: text("subtitle").notNull().default(""),
   description: text("description").notNull().default(""),
   url: text("url").notNull().default("#"),
+  previewUrl: text("preview_url"),
   tags: jsonb("tags").$type<string[]>().notNull().default([]),
   year: text("year").notNull().default(""),
   iframeable: boolean("iframeable").notNull().default(false),
