@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { isAuthenticated } from "@/lib/auth";
@@ -22,5 +23,6 @@ export async function PUT(request: Request) {
       .where(eq(projects.id, orderedIds[i]));
   }
 
+  revalidatePath("/");
   return NextResponse.json({ ok: true });
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { isAuthenticated } from "@/lib/auth";
@@ -39,6 +40,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  revalidatePath("/");
   return NextResponse.json(row);
 }
 
@@ -61,5 +63,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  revalidatePath("/");
   return NextResponse.json({ ok: true });
 }

@@ -14,6 +14,8 @@ import { EasterEggs } from "@/components/easter-eggs";
 import { VoiceCTA } from "@/components/voice/voice-cta";
 import { getVisibleProjects } from "@/lib/db/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const projects = await getVisibleProjects();
 
