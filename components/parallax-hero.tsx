@@ -246,26 +246,20 @@ export function ParallaxHero() {
           <div className="parallax__fade" />
         </div>
 
-        {/* Scroll indicator — liquid glass pill */}
+        {/* Scroll indicator */}
         <div
           ref={scrollRef}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-[float-bob_3s_ease-in-out_infinite]"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20"
           style={{ opacity: 0 }}
         >
-          <div
-            className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-full"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              boxShadow: "0 4px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-            }}
-          >
-            <span className="text-white/30 text-[8px] font-mono tracking-[0.25em] uppercase">
-              Scroll
-            </span>
-            <ChevronDown size={14} className="text-white/35 animate-bounce" />
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="w-[1px] h-8"
+              style={{ background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.3))" }}
+            />
+            <div className="animate-bounce">
+              <ChevronDown size={16} className="text-white/40" />
+            </div>
           </div>
         </div>
       </section>
