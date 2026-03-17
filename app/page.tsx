@@ -1,24 +1,53 @@
 import { ParallaxHero } from "@/components/parallax-hero";
+import { SkillsMarquee } from "@/components/skills-marquee";
 import { IntroText } from "@/components/intro-text";
 import { ScrollTimeline } from "@/components/scroll-timeline";
+import { Toolbox } from "@/components/toolbox";
+import { ProjectGallery } from "@/components/project-gallery";
+import { SocialProof } from "@/components/social-proof";
+import { NewsletterCTA } from "@/components/newsletter-cta";
+import { ScrollProgress } from "@/components/scroll-progress";
+import { SectionTransition } from "@/components/section-transition";
+import { ConnectSection } from "@/components/connect-section";
+import { CommandPalette } from "@/components/command-palette";
+import { EasterEggs } from "@/components/easter-eggs";
+import { VoiceCTA } from "@/components/voice/voice-cta";
+import { getVisibleProjects } from "@/lib/db/queries";
 
-export default function Home() {
+export default async function Home() {
+  const projects = await getVisibleProjects();
+
   return (
-    <main className="bg-black">
+    <main className="bg-[#050508]">
+      <ScrollProgress />
+      <CommandPalette />
+      <EasterEggs />
+
       <ParallaxHero />
+
+      <VoiceCTA />
+
+      <SkillsMarquee />
 
       <IntroText />
 
+      <SectionTransition variant="chapter" />
+
       <ScrollTimeline />
 
-      {/* Footer */}
-      <footer className="py-20 border-t border-white/5">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-white/30 text-sm">
-            &copy; {new Date().getFullYear()} Henry Nicholson
-          </p>
-        </div>
-      </footer>
+      <Toolbox />
+
+      <SectionTransition variant="chapter" />
+
+      <ProjectGallery projects={projects.length > 0 ? projects : undefined} />
+
+      <SocialProof />
+
+      <NewsletterCTA />
+
+      <SectionTransition variant="subtle" />
+
+      <ConnectSection />
     </main>
   );
 }

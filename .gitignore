@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local Netlify folder
+.netlify
+
+# Claude
+.claude/
+CLAUDE.md
+
+# Stale nested folder
+/portfolio/

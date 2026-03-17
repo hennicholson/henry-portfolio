@@ -1,19 +1,57 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLenis } from "lenis/react";
+import { ChevronDown } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function ParallaxHero() {
   const parallaxRef = useRef<HTMLDivElement>(null);
+  const h1Ref = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const ghostH1Ref = useRef<HTMLHeadingElement>(null);
+  const ghostSubtitleRef = useRef<HTMLParagraphElement>(null);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scattered = useRef(false);
 
-  // Sync Lenis smooth scroll with GSAP ScrollTrigger
-  useLenis(() => {
-    ScrollTrigger.update();
-  });
+  const handleNameHold = useCallback(() => {
+    holdTimer.current = setTimeout(() => {
+      if (scattered.current || !h1Ref.current) return;
+      scattered.current = true;
+
+      const letters = h1Ref.current.querySelectorAll<HTMLElement>("[data-letter]");
+      letters.forEach((el) => {
+        gsap.to(el, {
+          x: (Math.random() - 0.5) * 120,
+          y: (Math.random() - 0.5) * 80,
+          rotation: (Math.random() - 0.5) * 60,
+          duration: 0.6,
+          ease: "power3.out",
+        });
+      });
+
+      setTimeout(() => {
+        letters.forEach((el) => {
+          gsap.to(el, {
+            x: 0, y: 0, rotation: 0,
+            duration: 0.8,
+            ease: "elastic.out(1, 0.4)",
+          });
+        });
+        scattered.current = false;
+      }, 1200);
+    }, 2000);
+  }, []);
+
+  const handleNameRelease = useCallback(() => {
+    if (holdTimer.current) {
+      clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     const triggerElement = parallaxRef.current?.querySelector(
@@ -21,20 +59,61 @@ export function ParallaxHero() {
     );
     if (!triggerElement) return;
 
+    // Hero entrance
+    const entranceTargets = [
+      { el: h1Ref.current, y: 30, duration: 1, delay: 0.2 },
+      { el: subtitleRef.current, y: 20, duration: 0.8, delay: 0.5 },
+    ];
+
+    entranceTargets.forEach(({ el, y, duration, delay }) => {
+      if (el) {
+        gsap.fromTo(
+          el,
+          { opacity: 0, y },
+          { opacity: 1, y: 0, duration, ease: "power2.out", delay }
+        );
+      }
+    });
+
+    // Ghost layers
+    const ghostTargets = [
+      { el: ghostH1Ref.current, duration: 1, delay: 0.2 },
+      { el: ghostSubtitleRef.current, duration: 0.8, delay: 0.5 },
+    ];
+
+    ghostTargets.forEach(({ el, duration, delay }) => {
+      if (el) {
+        gsap.fromTo(
+          el,
+          { opacity: 0 },
+          { opacity: 1, duration, ease: "power2.out", delay }
+        );
+      }
+    });
+
+    // Scroll indicator entrance
+    if (scrollRef.current) {
+      gsap.fromTo(
+        scrollRef.current,
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 1.0 }
+      );
+    }
+
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: triggerElement,
         start: "0% 0%",
         end: "100% 0%",
-        scrub: 0,
+        scrub: true,
       },
     });
 
     const layers = [
-      { layer: "1", yPercent: 70 }, // Background — moves down most, appears to stay in place
-      { layer: "2", yPercent: 55 }, // Gradient overlay
-      { layer: "3", yPercent: 40 }, // Text — middle speed
-      { layer: "4", yPercent: 10 }, // Foreground — barely moves, scrolls away fastest
+      { layer: "1", yPercent: 70 },
+      { layer: "2", yPercent: 55 },
+      { layer: "3", yPercent: 40 },
+      { layer: "4", yPercent: 10 },
     ];
 
     layers.forEach((layerObj, idx) => {
@@ -47,92 +126,138 @@ export function ParallaxHero() {
       );
     });
 
+    // Fade out scroll indicator on scroll
+    if (scrollRef.current) {
+      gsap.to(scrollRef.current, {
+        opacity: 0,
+        scrollTrigger: {
+          trigger: triggerElement,
+          start: "2% 0%",
+          end: "10% 0%",
+          scrub: true,
+        },
+      });
+    }
+
     return () => {
       ScrollTrigger.getAll().forEach((st) => st.kill());
       gsap.killTweensOf(triggerElement);
     };
   }, []);
 
+  const wrapLetters = (text: string) =>
+    text.split("").map((char, i) => (
+      <span key={i} data-letter className="inline-block">
+        {char}
+      </span>
+    ));
+
+  const textContent = (
+    h1RefProp: React.Ref<HTMLHeadingElement>,
+    subtitleRefProp: React.Ref<HTMLParagraphElement>,
+    isMain?: boolean,
+  ) => (
+    <>
+      <h1
+        ref={h1RefProp}
+        className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9] select-none"
+        style={{
+          textShadow: "0 2px 20px rgba(0, 0, 0, 0.6)",
+          opacity: 0,
+        }}
+        onMouseDown={isMain ? handleNameHold : undefined}
+        onMouseUp={isMain ? handleNameRelease : undefined}
+        onMouseLeave={isMain ? handleNameRelease : undefined}
+        onTouchStart={isMain ? handleNameHold : undefined}
+        onTouchEnd={isMain ? handleNameRelease : undefined}
+      >
+        {isMain ? wrapLetters("Henry") : "Henry"}
+        <br />
+        {isMain ? wrapLetters("Nicholson") : "Nicholson"}
+      </h1>
+      <p
+        ref={subtitleRefProp}
+        className="mt-6 text-sm sm:text-base md:text-lg text-white/55 font-light tracking-[0.35em] uppercase"
+        style={{
+          textShadow: "0 2px 10px rgba(0, 0, 0, 0.6)",
+          opacity: 0,
+        }}
+      >
+        Builder & Entrepreneur
+      </p>
+    </>
+  );
+
   return (
     <div ref={parallaxRef}>
-      <section className="parallax__header">
+      <section className="parallax__header" data-section="hero">
         <div className="parallax__visuals">
           <div data-parallax-layers className="parallax__layers">
-            {/* Layer 1: Background cityscape — stays most in place */}
+            {/* Layer 1: Background */}
             <img
               src="/hero-bg.webp"
               loading="eager"
               data-parallax-layer="1"
               alt=""
-              className="parallax__layer-img md:!hidden"
+              className="parallax__layer-img parallax__layer-hw md:!hidden"
             />
-            <img
-              src="/hero-bg-desktop.webp"
-              loading="eager"
+            <video
+              src="/hero-bg-video.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
               data-parallax-layer="1"
-              alt=""
-              className="parallax__layer-img !hidden md:!block"
+              className="parallax__layer-img parallax__layer-hw !hidden md:!block"
             />
 
-            {/* Layer 2: Gradient for text readability */}
+            {/* Layer 2: Gradient */}
             <div
               data-parallax-layer="2"
-              className="parallax__layer-img parallax__layer-gradient"
+              className="parallax__layer-img parallax__layer-gradient parallax__layer-hw"
             />
 
-            {/* Layer 3: Text — between background and foreground */}
-            <div data-parallax-layer="3" className="parallax__layer-title">
-              <h1
-                className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9]"
-                style={{ textShadow: "0 2px 20px rgba(0,0,0,0.6), 0 0 60px rgba(0,0,0,0.4)" }}
-              >
-                Henry
-                <br />
-                Nicholson
-              </h1>
-              <p
-                className="mt-6 text-sm sm:text-base md:text-lg text-white/70 font-light tracking-[0.3em] uppercase"
-                style={{ textShadow: "0 2px 15px rgba(0,0,0,0.6), 0 0 40px rgba(0,0,0,0.3)" }}
-              >
-                Builder & Entrepreneur
-              </p>
+            {/* Layer 3: Text */}
+            <div data-parallax-layer="3" className="parallax__layer-title parallax__layer-hw">
+              {textContent(h1Ref, subtitleRef, true)}
             </div>
 
-            {/* Layer 4: Foreground person — scrolls away fastest */}
+            {/* Layer 4: Foreground */}
             <img
               src="/hero-fg.webp"
               loading="eager"
               data-parallax-layer="4"
               alt=""
-              className="parallax__layer-img md:!hidden"
+              className="parallax__layer-img parallax__layer-hw md:!hidden"
             />
             <img
               src="/hero-fg-desktop.webp"
               loading="eager"
               data-parallax-layer="4"
               alt=""
-              className="parallax__layer-img !hidden md:!block"
+              className="parallax__layer-img parallax__layer-hw !hidden md:!block"
             />
 
-            {/* Layer 3 (ghost): X-ray text visible through the person */}
-            <div data-parallax-layer="3" className="parallax__layer-title parallax__layer-title--ghost">
-              <h1
-                className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9]"
-                style={{ textShadow: "0 2px 20px rgba(0,0,0,0.6), 0 0 60px rgba(0,0,0,0.4)" }}
-              >
-                Henry
-                <br />
-                Nicholson
-              </h1>
-              <p
-                className="mt-6 text-sm sm:text-base md:text-lg text-white/70 font-light tracking-[0.3em] uppercase"
-                style={{ textShadow: "0 2px 15px rgba(0,0,0,0.6), 0 0 40px rgba(0,0,0,0.3)" }}
-              >
-                Builder & Entrepreneur
-              </p>
+            {/* Layer 3 (ghost): X-ray text */}
+            <div data-parallax-layer="3" className="parallax__layer-title parallax__layer-title--ghost parallax__layer-hw">
+              {textContent(ghostH1Ref, ghostSubtitleRef)}
             </div>
           </div>
           <div className="parallax__fade" />
+        </div>
+
+        {/* Scroll indicator */}
+        <div
+          ref={scrollRef}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-[float-bob_3s_ease-in-out_infinite]"
+          style={{ opacity: 0 }}
+        >
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-white/25 text-[9px] font-mono tracking-[0.2em] uppercase">
+              Scroll
+            </span>
+            <ChevronDown size={12} className="text-white/25 animate-bounce" />
+          </div>
         </div>
       </section>
     </div>
