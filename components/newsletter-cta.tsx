@@ -7,6 +7,12 @@ import { ArrowUpRight } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const topics = [
+  "Prompting patterns that actually work",
+  "Context window strategies for complex tasks",
+  "Building AI agents that don't hallucinate",
+];
+
 export function NewsletterCTA() {
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
@@ -44,9 +50,10 @@ export function NewsletterCTA() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder — user will add Beehiiv/Substack endpoint later
     if (email) {
-      window.open(`https://adventuresinai.beehiiv.com/subscribe?email=${encodeURIComponent(email)}`, "_blank");
+      // Placeholder — connect to newsletter provider later
+      console.log("Newsletter signup:", email);
+      setEmail("");
     }
   };
 
@@ -59,14 +66,11 @@ export function NewsletterCTA() {
             <span className="text-[10px] font-mono tracking-[0.25em] uppercase text-white/20 mb-4 block">
               Newsletter
             </span>
-            <h2
-              className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-3"
-              style={{ fontFamily: "var(--font-caveat)" }}
-            >
-              Adventures in AI
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-3">
+              Context Engineering
             </h2>
             <p className="text-sm md:text-base text-white/35 leading-relaxed mb-6 max-w-md">
-              A weekly newsletter on AI tools, techniques, and strategies. Distilling what matters so you don&apos;t have to.
+              A weekly breakdown of how to build better with AI. Prompting strategies, agent architectures, and the context patterns that separate good outputs from great ones.
             </p>
 
             <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm">
@@ -96,7 +100,7 @@ export function NewsletterCTA() {
             </form>
           </div>
 
-          {/* Right — Issue preview */}
+          {/* Right — What you'll get */}
           <div ref={rightRef} className="md:col-span-2 relative">
             <div
               className="rounded-xl p-5 relative overflow-hidden"
@@ -105,45 +109,37 @@ export function NewsletterCTA() {
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              {/* Issue number watermark */}
-              <span className="absolute top-2 right-4 text-[48px] font-bold leading-none text-white/[0.04] select-none pointer-events-none">
-                53+
+              <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/20 block mb-4">
+                What You&apos;ll Get
               </span>
 
-              <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/20 block mb-3">
-                Latest Issue
-              </span>
-              <h3 className="text-base font-semibold text-white/70 mb-2 tracking-tight">
-                The Tools That Actually Matter in 2026
-              </h3>
-              <div className="space-y-1.5 mb-4">
-                <p className="text-xs text-white/30 flex items-start gap-2">
-                  <span className="text-white/10 mt-px">&bull;</span>
-                  Why Claude Code changes everything for builders
-                </p>
-                <p className="text-xs text-white/30 flex items-start gap-2">
-                  <span className="text-white/10 mt-px">&bull;</span>
-                  The 3 AI video tools worth your time
-                </p>
-                <p className="text-xs text-white/30 flex items-start gap-2">
-                  <span className="text-white/10 mt-px">&bull;</span>
-                  What agencies get wrong about AI adoption
-                </p>
+              <div className="space-y-3 mb-5">
+                {topics.map((topic, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <span className="text-[10px] font-mono text-white/15 mt-0.5 shrink-0">
+                      0{i + 1}
+                    </span>
+                    <p className="text-sm text-white/35 leading-relaxed">
+                      {topic}
+                    </p>
+                  </div>
+                ))}
               </div>
 
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-wider uppercase text-white/25 hover:text-white/50 transition-colors duration-300"
-              >
-                Read Archive <ArrowUpRight size={10} />
-              </a>
+              <div className="flex items-center gap-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                <span className="text-[9px] font-mono tracking-[0.2em] uppercase text-white/15">
+                  Free
+                </span>
+                <span className="text-white/10">&middot;</span>
+                <span className="text-[9px] font-mono tracking-[0.2em] uppercase text-white/15">
+                  Weekly
+                </span>
+                <span className="text-white/10">&middot;</span>
+                <span className="text-[9px] font-mono tracking-[0.2em] uppercase text-white/15">
+                  No spam
+                </span>
+              </div>
             </div>
-
-            <p className="text-center mt-3 text-[9px] font-mono tracking-[0.2em] uppercase text-white/15">
-              Issues Published
-            </p>
           </div>
         </div>
       </div>

@@ -14,12 +14,6 @@ const socials = [
   { label: "Email", icon: Mail, href: "#" },
 ];
 
-const nowItems = [
-  { emoji: "\u{1F528}", label: "Building", value: "LaunchPad v2" },
-  { emoji: "\u270D\uFE0F", label: "Writing", value: "Adventures in AI, Issue 54" },
-  { emoji: "\u{1F4CD}", label: "Based in", value: "San Diego, CA" },
-];
-
 export function ConnectSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const secretRef = useRef<HTMLDivElement>(null);
@@ -89,40 +83,6 @@ export function ConnectSection() {
               <ArrowUpRight size={10} className="text-white/10 group-hover:text-white/30 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 hidden md:inline" />
             </a>
           ))}
-        </div>
-
-        {/* Now Widget */}
-        <div className="flex justify-center mb-12" data-animate>
-          <div
-            className="rounded-xl px-5 py-4 max-w-sm w-full"
-            style={{
-              background: "linear-gradient(180deg, rgba(12, 12, 20, 0.6) 0%, rgba(8, 8, 14, 0.7) 100%)",
-              border: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/15 block mb-3">
-              Right Now
-            </span>
-            <div className="space-y-2">
-              {nowItems.map((item, i) => (
-                <div key={i} className="flex items-center gap-2.5">
-                  <span className="text-xs">{item.emoji}</span>
-                  <span className="text-[10px] font-mono text-white/20 tracking-wider w-14 shrink-0">
-                    {item.label}
-                  </span>
-                  <span className="text-sm text-white/40" style={{ fontFamily: "var(--font-caveat)" }}>
-                    {item.value}
-                  </span>
-                  {i === 0 && (
-                    <span className="relative ml-auto flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/20" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white/30" />
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="w-full h-px bg-white/[0.04] mb-6" data-animate />

@@ -9,19 +9,50 @@ gsap.registerPlugin(ScrollTrigger);
 const categories = [
   {
     label: "Build",
-    tools: ["React", "Next.js", "TypeScript", "Node.js", "Tailwind CSS", "GSAP"],
+    description: "Core stack",
+    tools: [
+      { name: "React", note: "UI" },
+      { name: "Next.js", note: "Framework" },
+      { name: "TypeScript", note: "Language" },
+      { name: "Node.js", note: "Runtime" },
+      { name: "Tailwind", note: "Styling" },
+      { name: "GSAP", note: "Animation" },
+    ],
   },
   {
     label: "AI",
-    tools: ["Claude", "GPT", "Midjourney", "Runway", "ElevenLabs", "Cursor"],
+    description: "Intelligence layer",
+    tools: [
+      { name: "Claude", note: "Reasoning" },
+      { name: "GPT", note: "Generation" },
+      { name: "Midjourney", note: "Imagery" },
+      { name: "Runway", note: "Video" },
+      { name: "ElevenLabs", note: "Voice" },
+      { name: "Cursor", note: "Code" },
+    ],
   },
   {
     label: "Ship",
-    tools: ["Vercel", "Netlify", "Supabase", "Whop", "GitHub", "Stripe"],
+    description: "Deploy & monetize",
+    tools: [
+      { name: "Vercel", note: "Hosting" },
+      { name: "Netlify", note: "Edge" },
+      { name: "Supabase", note: "Database" },
+      { name: "Whop", note: "Payments" },
+      { name: "GitHub", note: "Source" },
+      { name: "Stripe", note: "Billing" },
+    ],
   },
   {
     label: "Create",
-    tools: ["Figma", "After Effects", "Premiere Pro", "DaVinci Resolve", "Canva"],
+    description: "Visual production",
+    tools: [
+      { name: "Figma", note: "Design" },
+      { name: "After Effects", note: "Motion" },
+      { name: "Premiere", note: "Edit" },
+      { name: "DaVinci", note: "Grade" },
+      { name: "Canva", note: "Quick" },
+    ],
   },
 ];
 
@@ -45,18 +76,15 @@ export function Toolbox() {
         });
       }
 
-      const rows = sectionRef.current!.querySelectorAll<HTMLElement>("[data-tool-row]");
-      rows.forEach((row) => {
-        const pills = row.querySelectorAll<HTMLElement>("[data-tool-pill]");
-        gsap.set(pills, { opacity: 0, y: 16 });
-        ScrollTrigger.create({
-          trigger: row,
-          start: "top 85%",
-          onEnter: () => {
-            gsap.to(pills, { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "power3.out" });
-          },
-          once: true,
-        });
+      const cards = sectionRef.current!.querySelectorAll<HTMLElement>("[data-tool-card]");
+      gsap.set(cards, { opacity: 0, y: 30 });
+      ScrollTrigger.create({
+        trigger: cards[0],
+        start: "top 85%",
+        onEnter: () => {
+          gsap.to(cards, { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power3.out" });
+        },
+        once: true,
       });
     }, sectionRef);
 
@@ -74,33 +102,52 @@ export function Toolbox() {
         </p>
       </div>
 
-      <div className="w-[90vw] max-w-4xl mx-auto px-6 space-y-6">
+      <div className="w-[90vw] max-w-5xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         {categories.map((cat) => (
-          <div key={cat.label} data-tool-row className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <span className="text-[10px] font-mono tracking-[0.25em] uppercase text-white/20 w-16 shrink-0">
-              {cat.label}
-            </span>
-            <div className="flex flex-wrap gap-2">
+          <div
+            key={cat.label}
+            data-tool-card
+            className="group rounded-xl p-5 md:p-6 transition-all duration-400"
+            style={{
+              background: "linear-gradient(180deg, rgba(12, 12, 20, 0.5) 0%, rgba(8, 8, 14, 0.7) 100%)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.12)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
+            }}
+          >
+            <div className="flex items-baseline justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white/60 tracking-tight">
+                {cat.label}
+              </h3>
+              <span className="text-[9px] font-mono tracking-[0.2em] uppercase text-white/15">
+                {cat.description}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-1.5">
               {cat.tools.map((tool) => (
-                <span
-                  key={tool}
-                  data-tool-pill
-                  className="px-3 py-1.5 rounded-lg text-[11px] font-mono text-white/30 cursor-default transform-gpu transition-all duration-300 hover:text-white/60 hover:-translate-y-0.5"
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    background: "rgba(255,255,255,0.03)",
-                  }}
+                <div
+                  key={tool.name}
+                  className="flex flex-col items-center py-2.5 px-1 rounded-lg cursor-default transform-gpu transition-all duration-300 hover:-translate-y-0.5"
+                  style={{ background: "rgba(255,255,255,0.02)" }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.2)";
-                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
-                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)";
                   }}
                 >
-                  {tool}
-                </span>
+                  <span className="text-[11px] font-mono text-white/40 group-hover:text-white/50 transition-colors">
+                    {tool.name}
+                  </span>
+                  <span className="text-[8px] font-mono tracking-wider uppercase text-white/15 mt-0.5">
+                    {tool.note}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
