@@ -41,9 +41,10 @@ export async function POST(request: Request) {
   const rawBody = await request.text();
   const signature = request.headers.get("elevenlabs-signature");
 
-  // Verify signature if secret is configured
-  if (process.env.ELEVENLABS_WEBHOOK_SECRET) {
-    if (!signature || !verifyWebhookSignature(rawBody, signature)) {
+  // If request has ElevenLabs signature header, verify it
+  // Requests without the header are from our own forms (newsletter, etc.)
+  if (signature) {
+    if (!verifyWebhookSignature(rawBody, signature)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
   }
