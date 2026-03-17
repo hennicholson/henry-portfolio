@@ -48,12 +48,27 @@ export function NewsletterCTA() {
     return () => ctx.revert();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      // Placeholder — connect to newsletter provider later
-      console.log("Newsletter signup:", email);
+    if (!email || submitting) return;
+    setSubmitting(true);
+
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "newsletter" }),
+      });
       setEmail("");
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch {
+      // silently fail
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -87,15 +102,16 @@ export function NewsletterCTA() {
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-300 shrink-0"
+                disabled={submitting || submitted}
+                className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 shrink-0 disabled:opacity-70"
                 style={{
-                  background: "white",
+                  background: submitted ? "rgba(74,222,128,0.9)" : "white",
                   color: "#050508",
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.9)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "white"; }}
+                onMouseEnter={(e) => { if (!submitted) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.9)"; }}
+                onMouseLeave={(e) => { if (!submitted) (e.currentTarget as HTMLElement).style.background = "white"; }}
               >
-                Subscribe
+                {submitted ? "Subscribed!" : submitting ? "..." : "Subscribe"}
               </button>
             </form>
           </div>
