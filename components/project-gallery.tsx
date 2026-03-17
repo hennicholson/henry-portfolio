@@ -169,7 +169,7 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
     iframeLoadedRef.current = false;
     setIframeLoaded(false);
     setIframeError(false);
-    const timeout = setTimeout(() => { if (!iframeLoadedRef.current) setIframeError(true); }, 10000);
+    const timeout = setTimeout(() => { if (!iframeLoadedRef.current) setIframeError(true); }, 5000);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeProject, viewerOpen]);
@@ -627,18 +627,25 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
                       </div>
                     </div>
                   )}
-                  <p className="mt-4 text-white/20 text-xs font-mono">
-                    {iframeError ? "Preview could not be loaded." : "Live preview coming soon."}
-                  </p>
-                  <a
-                    href={activeProject.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm text-white/60 hover:text-white/80 transition-colors"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                  >
-                    Visit Site <ArrowUpRight size={12} />
-                  </a>
+                  {activeProject.url !== "#" && (
+                    <a
+                      href={activeProject.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-6 inline-flex items-center gap-2.5 px-6 py-3 rounded-lg text-sm font-medium text-white/80 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
+                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.12)";
+                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.2)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)";
+                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.12)";
+                      }}
+                    >
+                      Visit {activeProject.url.replace(/^https?:\/\//, "")} <ArrowUpRight size={14} />
+                    </a>
+                  )}
                 </div>
               )}
             </div>
