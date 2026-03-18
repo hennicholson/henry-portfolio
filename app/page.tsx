@@ -4,7 +4,7 @@ import { IntroText } from "@/components/intro-text";
 import { ScrollTimeline } from "@/components/scroll-timeline";
 import { Toolbox } from "@/components/toolbox";
 import { ProjectGallery } from "@/components/project-gallery";
-import { SocialProof } from "@/components/social-proof";
+import SlackTestimonials from "@/components/slack-testimonials";
 import { NewsletterCTA } from "@/components/newsletter-cta";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { SectionTransition } from "@/components/section-transition";
@@ -43,7 +43,7 @@ export default async function Home() {
 
       <ProjectGallery projects={projects.length > 0 ? projects : undefined} />
 
-      <SocialProof />
+      <SlackTestimonials />
 
       <NewsletterCTA />
 
