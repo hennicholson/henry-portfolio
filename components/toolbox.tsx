@@ -1,230 +1,478 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const categories = [
+interface ToolData {
+  name: string;
+  note: string;
+  logoUrl?: string | null;
+}
+
+interface CategoryData {
+  label: string;
+  tools: ToolData[];
+}
+
+const fallbackCategories: CategoryData[] = [
   {
     label: "Build",
     tools: [
-      { name: "React", note: "UI" },
-      { name: "Next.js", note: "Framework" },
-      { name: "TypeScript", note: "Language" },
-      { name: "Node.js", note: "Runtime" },
-      { name: "Tailwind", note: "Styling" },
-      { name: "GSAP", note: "Animation" },
+      { name: "React", note: "UI", logoUrl: "/logos/react.svg" },
+      { name: "Next.js", note: "Framework", logoUrl: "/logos/nextjs.svg" },
+      { name: "TypeScript", note: "Language", logoUrl: "/logos/typescript.svg" },
+      { name: "Node.js", note: "Runtime", logoUrl: "/logos/nodejs.svg" },
+      { name: "Tailwind", note: "Styling", logoUrl: "/logos/tailwind.svg" },
+      { name: "GSAP", note: "Animation", logoUrl: "/logos/gsap.svg" },
     ],
   },
   {
     label: "AI",
     tools: [
-      { name: "Claude", note: "Reasoning" },
-      { name: "GPT", note: "Generation" },
-      { name: "Midjourney", note: "Imagery" },
-      { name: "Runway", note: "Video" },
-      { name: "ElevenLabs", note: "Voice" },
-      { name: "Cursor", note: "Code" },
+      { name: "Claude", note: "Reasoning", logoUrl: "/logos/claude.svg" },
+      { name: "GPT", note: "Generation", logoUrl: "/logos/gpt.svg" },
+      { name: "Midjourney", note: "Imagery", logoUrl: "/logos/midjourney.svg" },
+      { name: "Runway", note: "Video", logoUrl: "/logos/runway.svg" },
+      { name: "ElevenLabs", note: "Voice", logoUrl: "/logos/elevenlabs.svg" },
+      { name: "Cursor", note: "Code", logoUrl: "/logos/cursor.svg" },
     ],
   },
   {
     label: "Ship",
     tools: [
-      { name: "Vercel", note: "Hosting" },
-      { name: "Netlify", note: "Edge" },
-      { name: "Supabase", note: "Database" },
-      { name: "Whop", note: "Payments" },
-      { name: "GitHub", note: "Source" },
-      { name: "Stripe", note: "Billing" },
+      { name: "Vercel", note: "Hosting", logoUrl: "/logos/vercel.svg" },
+      { name: "Netlify", note: "Edge", logoUrl: "/logos/netlify.svg" },
+      { name: "Supabase", note: "Database", logoUrl: "/logos/supabase.svg" },
+      { name: "Whop", note: "Payments", logoUrl: "/logos/whop.svg" },
+      { name: "GitHub", note: "Source", logoUrl: "/logos/github.svg" },
+      { name: "Stripe", note: "Billing", logoUrl: "/logos/stripe.svg" },
     ],
   },
   {
     label: "Create",
     tools: [
-      { name: "Figma", note: "Design" },
-      { name: "After Effects", note: "Motion" },
-      { name: "Premiere", note: "Edit" },
-      { name: "DaVinci", note: "Grade" },
-      { name: "Canva", note: "Quick" },
+      { name: "Figma", note: "Design", logoUrl: "/logos/figma.svg" },
+      { name: "After Effects", note: "Motion", logoUrl: "/logos/aftereffects.svg" },
+      { name: "Premiere", note: "Edit", logoUrl: "/logos/premiere.svg" },
+      { name: "DaVinci", note: "Grade", logoUrl: "/logos/davinci.svg" },
+      { name: "Canva", note: "Quick", logoUrl: "/logos/canva.svg" },
     ],
   },
 ];
 
-export function Toolbox() {
-  const sectionRef = useRef<HTMLElement>(null);
+function ToolChip({ tool }: { tool: ToolData }) {
+  return (
+    <div className="group/chip relative cursor-default">
+      <div
+        className="relative rounded-lg px-3 py-2.5 transition-all duration-300 group-hover/chip:scale-[1.03] group-hover/chip:translate-y-[-1px]"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+          e.currentTarget.style.boxShadow =
+            "0 4px 12px rgba(0,0,0,0.4), 0 0 20px rgba(74,222,128,0.06), inset 0 1px 0 rgba(255,255,255,0.06)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+          e.currentTarget.style.boxShadow =
+            "0 1px 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)";
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          {tool.logoUrl && (
+            <Image
+              src={tool.logoUrl}
+              alt={tool.name}
+              width={18}
+              height={18}
+              className="opacity-25 group-hover/chip:opacity-55 transition-opacity duration-300 shrink-0"
+            />
+          )}
+          <div className="min-w-0">
+            <div className="text-[12px] font-mono text-white/50 group-hover/chip:text-white/75 transition-colors duration-300 leading-tight">
+              {tool.name}
+            </div>
+            <div className="text-[8px] font-mono tracking-[0.15em] uppercase text-white/15 group-hover/chip:text-white/30 transition-colors duration-300 leading-tight">
+              {tool.note}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Drawer({
+  category,
+  index,
+  isOpen,
+  onToggle,
+}: {
+  category: CategoryData;
+  index: number;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!contentRef.current) return;
+    if (isOpen) {
+      gsap.to(contentRef.current, {
+        height: "auto",
+        opacity: 1,
+        duration: 0.45,
+        ease: "power3.out",
+      });
+    } else {
+      gsap.to(contentRef.current, {
+        height: 0,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power3.inOut",
+      });
+    }
+  }, [isOpen]);
 
+  return (
+    <div
+      ref={drawerRef}
+      data-drawer
+      className="relative"
+    >
+      {/* Drawer handle / label bar */}
+      <div
+        onClick={onToggle}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onToggle(); }}
+        data-magnetic
+        className="w-full group relative cursor-pointer select-none"
+      >
+        <div
+          className="relative flex items-center justify-between px-5 py-3 transition-all duration-300"
+          style={{
+            borderRadius: isOpen ? "8px 8px 0 0" : "8px",
+            background: isOpen
+              ? "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%)"
+              : "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderBottom: isOpen ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(255,255,255,0.08)",
+            boxShadow: isOpen
+              ? "0 -2px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
+              : "0 -1px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04)",
+          }}
+          onMouseEnter={(e) => {
+            if (!isOpen) e.currentTarget.style.background = "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.025) 100%)";
+          }}
+          onMouseLeave={(e) => {
+            if (!isOpen) e.currentTarget.style.background = "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)";
+          }}
+        >
+          {/* Drawer label */}
+          <div className="flex items-center gap-3">
+            <span
+              className="text-[10px] font-mono tracking-[0.3em] uppercase transition-colors duration-300"
+              style={{
+                color: isOpen ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.25)",
+              }}
+            >
+              {category.label}
+            </span>
+            <span className="text-[9px] font-mono text-white/10 tabular-nums">
+              {category.tools.length}
+            </span>
+          </div>
+
+          {/* Drawer handle detail */}
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-[3px] rounded-full transition-all duration-300"
+              style={{
+                background: isOpen
+                  ? "rgba(74,222,128,0.25)"
+                  : "rgba(255,255,255,0.08)",
+              }}
+            />
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 10 10"
+              className="transition-transform duration-300"
+              style={{
+                transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                color: isOpen ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.15)",
+              }}
+            >
+              <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            </svg>
+          </div>
+
+          {/* Side screws */}
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.4)" }} />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.4)" }} />
+        </div>
+      </div>
+
+      {/* Drawer content — the tray that slides out */}
+      <div
+        ref={contentRef}
+        className="overflow-hidden"
+        style={{ height: 0, opacity: 0 }}
+      >
+        <div
+          className="px-4 pt-3 pb-4 rounded-b-lg"
+          style={{
+            background: "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(8,8,14,0.95) 100%)",
+            borderLeft: "1px solid rgba(255,255,255,0.05)",
+            borderRight: "1px solid rgba(255,255,255,0.05)",
+            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            boxShadow: "inset 0 4px 12px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.2)",
+          }}
+        >
+          {/* Inner tray felt texture */}
+          <div className="relative">
+            {/* Tool grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {category.tools.map((tool, toolIdx) => (
+                <div
+                  key={tool.name}
+                  data-tool-item
+                  style={{ opacity: 0, transform: "translateY(8px)" }}
+                >
+                  <ToolChip tool={tool} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function Toolbox({ categories }: { categories?: CategoryData[] }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const data = categories || fallbackCategories;
+  const [openDrawers, setOpenDrawers] = useState<Set<number>>(new Set());
+
+  const toggleDrawer = (index: number) => {
+    setOpenDrawers((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
+  // Animate tool items when drawer opens
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    const drawers = sectionRef.current.querySelectorAll("[data-drawer]");
+    drawers.forEach((drawer, idx) => {
+      if (openDrawers.has(idx)) {
+        const items = drawer.querySelectorAll("[data-tool-item]");
+        items.forEach((item, itemIdx) => {
+          gsap.to(item, {
+            opacity: 1,
+            y: 0,
+            duration: 0.35,
+            delay: itemIdx * 0.04,
+            ease: "power2.out",
+          });
+        });
+      }
+    });
+  }, [openDrawers]);
+
+  // Scroll-triggered entrance
+  useEffect(() => {
+    if (!sectionRef.current) return;
     const ctx = gsap.context(() => {
-      // Header
-      gsap.from("[data-pcb-header]", {
-        scrollTrigger: { trigger: "[data-pcb-header]", start: "top 85%", once: true },
+      gsap.from("[data-tb-header]", {
+        scrollTrigger: { trigger: "[data-tb-header]", start: "top 85%", once: true },
         opacity: 0,
         y: 20,
         duration: 0.7,
         ease: "power3.out",
       });
 
-      // Board
-      gsap.from("[data-pcb-board]", {
-        scrollTrigger: { trigger: "[data-pcb-board]", start: "top 85%", once: true },
+      gsap.from("[data-tb-box]", {
+        scrollTrigger: { trigger: "[data-tb-box]", start: "top 85%", once: true },
         opacity: 0,
-        y: 30,
-        duration: 0.7,
+        y: 40,
+        rotateX: -5,
+        duration: 0.9,
         ease: "power3.out",
+        onComplete: () => {
+          // Auto-open first drawer after entrance
+          setOpenDrawers(new Set([0]));
+        },
       });
 
-      // Chips per column
-      const columns = sectionRef.current!.querySelectorAll("[data-pcb-col]");
-      columns.forEach((col, colIdx) => {
-        const chips = col.querySelectorAll("[data-pcb-chip]");
-        chips.forEach((chip, chipIdx) => {
-          gsap.from(chip, {
-            scrollTrigger: { trigger: col, start: "top 82%", once: true },
-            opacity: 0,
-            scale: 0.85,
-            duration: 0.4,
-            delay: colIdx * 0.1 + chipIdx * 0.04,
-            ease: "back.out(1.4)",
-          });
-        });
-
-        const traces = col.querySelectorAll("[data-pcb-trace]");
-        traces.forEach((trace, traceIdx) => {
-          gsap.from(trace, {
-            scrollTrigger: { trigger: col, start: "top 80%", once: true },
-            scaleY: 0,
-            opacity: 0,
-            duration: 0.3,
-            delay: colIdx * 0.1 + traceIdx * 0.04 + 0.15,
-            ease: "power2.out",
-          });
+      // Stagger drawer entrances
+      const drawers = sectionRef.current!.querySelectorAll("[data-drawer]");
+      drawers.forEach((drawer, idx) => {
+        gsap.from(drawer, {
+          scrollTrigger: { trigger: drawer, start: "top 90%", once: true },
+          opacity: 0,
+          x: idx % 2 === 0 ? -20 : 20,
+          duration: 0.5,
+          delay: idx * 0.08,
+          ease: "power2.out",
         });
       });
     }, sectionRef);
 
     return () => ctx.revert();
+  }, [data]);
+
+  // Subtle 3D tilt on mouse move
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = box.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const rotateY = ((e.clientX - centerX) / rect.width) * 3;
+      const rotateX = ((e.clientY - centerY) / rect.height) * -2;
+
+      gsap.to(box, {
+        rotateX,
+        rotateY,
+        duration: 0.6,
+        ease: "power2.out",
+      });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(box, {
+        rotateX: 0,
+        rotateY: 0,
+        duration: 0.8,
+        ease: "elastic.out(1, 0.5)",
+      });
+    };
+
+    box.addEventListener("mousemove", handleMouseMove);
+    box.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      box.removeEventListener("mousemove", handleMouseMove);
+      box.removeEventListener("mouseleave", handleMouseLeave);
+    };
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-14 md:py-20" data-section="stack">
+    <section ref={sectionRef} className="relative py-16 md:py-24" data-section="stack">
       {/* Section header */}
-      <div data-pcb-header className="w-[90vw] max-w-5xl mx-auto px-6 mb-8 text-center">
+      <div data-tb-header className="w-[90vw] max-w-3xl mx-auto px-6 mb-10 text-center">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
           The Toolbox
         </h2>
-        <p className="mt-3 text-white/25 text-sm md:text-base font-mono tracking-wide">
-          Core circuit topology
+        <p className="mt-3 text-white/20 text-sm md:text-base font-mono tracking-wide">
+          Open the drawers
         </p>
       </div>
 
-      {/* PCB Board */}
-      <div className="w-[90vw] max-w-5xl mx-auto px-6">
+      {/* 3D Toolbox */}
+      <div className="w-[90vw] max-w-3xl mx-auto px-6" style={{ perspective: "1200px" }}>
         <div
-          data-pcb-board
-          className="relative rounded-xl p-5 md:p-8 overflow-hidden"
+          ref={boxRef}
+          data-tb-box
+          className="relative rounded-2xl overflow-hidden"
           style={{
-            background: "rgba(8, 8, 14, 0.8)",
-            border: "1px solid rgba(255,255,255,0.06)",
+            transformStyle: "preserve-3d",
+            background: "linear-gradient(180deg, rgba(18,18,28,0.95) 0%, rgba(8,8,14,0.98) 100%)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            boxShadow: `
+              0 20px 60px rgba(0,0,0,0.5),
+              0 0 0 1px rgba(255,255,255,0.03) inset,
+              0 2px 0 rgba(255,255,255,0.04) inset
+            `,
           }}
         >
-          {/* Grid texture */}
+          {/* Toolbox lid / top panel */}
           <div
-            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            className="relative px-6 py-4 flex items-center justify-between"
             style={{
-              backgroundImage: `
-                repeating-linear-gradient(0deg, transparent, transparent 19px, white 19px, white 20px),
-                repeating-linear-gradient(90deg, transparent, transparent 19px, white 19px, white 20px)
-              `,
+              background: "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
-          />
-
-          {/* Board identifier */}
-          <div className="absolute top-3 right-4 text-[8px] font-mono text-white/10 tracking-wider select-none">
-            HN-PCB-2026 REV 1.0
+          >
+            <div className="flex items-center gap-3">
+              {/* Latch detail */}
+              <div
+                className="w-6 h-3 rounded-sm"
+                style={{
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+                }}
+              />
+              <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/15 select-none">
+                HN-TOOLKIT-2026
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {/* Status dots */}
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400/30" style={{ boxShadow: "0 0 4px rgba(74,222,128,0.3)" }} />
+              <span className="text-[8px] font-mono text-white/10 tabular-nums">
+                {data.reduce((sum, cat) => sum + cat.tools.length, 0)} TOOLS
+              </span>
+            </div>
           </div>
 
-          {/* Category columns */}
-          <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {categories.map((category) => (
-              <div key={category.label} data-pcb-col>
-                {/* Silkscreen label */}
-                <div className="text-[9px] font-mono tracking-[0.3em] uppercase text-white/30 mb-3 text-center select-none">
-                  {category.label}
-                </div>
+          {/* Corner bolts */}
+          {[
+            "top-1.5 left-1.5",
+            "top-1.5 right-1.5",
+            "bottom-1.5 left-1.5",
+            "bottom-1.5 right-1.5",
+          ].map((pos) => (
+            <div
+              key={pos}
+              className={`absolute ${pos} w-2 h-2 rounded-full pointer-events-none`}
+              style={{
+                background: "radial-gradient(circle, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.02) 70%)",
+                boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.5)",
+              }}
+            />
+          ))}
 
-                {/* Chips + traces */}
-                <div className="flex flex-col items-center">
-                  {category.tools.map((tool, index) => (
-                    <div key={tool.name} className="w-full flex flex-col items-center">
-                      {/* Trace between chips */}
-                      {index > 0 && (
-                        <div data-pcb-trace className="flex flex-col items-center origin-top">
-                          <div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ background: "rgba(255,255,255,0.18)" }}
-                          />
-                          <div
-                            className="w-px h-2.5"
-                            style={{ background: "rgba(255,255,255,0.12)" }}
-                          />
-                          <div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ background: "rgba(255,255,255,0.18)" }}
-                          />
-                        </div>
-                      )}
-
-                      {/* Chip */}
-                      <div data-pcb-chip className="relative w-full max-w-[140px] group cursor-default">
-                        <div
-                          className="relative rounded px-3 py-2 transition-all duration-300 group-hover:scale-[1.04]"
-                          style={{
-                            background: "rgba(14, 14, 22, 0.9)",
-                            border: "1px solid rgba(255,255,255,0.08)",
-                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                          }}
-                        >
-                          {/* Left pins */}
-                          <div className="absolute left-[-2px] top-1/2 -translate-y-1/2 flex flex-col gap-[3px]">
-                            <div className="w-[3px] h-[2px] rounded-[1px]" style={{ background: "rgba(255,255,255,0.12)" }} />
-                            <div className="w-[3px] h-[2px] rounded-[1px]" style={{ background: "rgba(255,255,255,0.12)" }} />
-                            <div className="w-[3px] h-[2px] rounded-[1px]" style={{ background: "rgba(255,255,255,0.12)" }} />
-                          </div>
-
-                          {/* Right pins */}
-                          <div className="absolute right-[-2px] top-1/2 -translate-y-1/2 flex flex-col gap-[3px]">
-                            <div className="w-[3px] h-[2px] rounded-[1px]" style={{ background: "rgba(255,255,255,0.12)" }} />
-                            <div className="w-[3px] h-[2px] rounded-[1px]" style={{ background: "rgba(255,255,255,0.12)" }} />
-                            <div className="w-[3px] h-[2px] rounded-[1px]" style={{ background: "rgba(255,255,255,0.12)" }} />
-                          </div>
-
-                          {/* Chip content */}
-                          <div className="flex flex-col items-center py-0.5">
-                            <span className="text-[11px] font-mono text-white/55 group-hover:text-white/80 transition-colors duration-300">
-                              {tool.name}
-                            </span>
-                            <span className="text-[8px] font-mono tracking-widest uppercase text-white/20 group-hover:text-white/35 transition-colors duration-300">
-                              {tool.note}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {/* Drawers */}
+          <div className="p-3 space-y-1">
+            {data.map((category, index) => (
+              <Drawer
+                key={category.label}
+                category={category}
+                index={index}
+                isOpen={openDrawers.has(index)}
+                onToggle={() => toggleDrawer(index)}
+              />
             ))}
           </div>
+
+          {/* Bottom edge shadow for depth */}
+          <div
+            className="h-3"
+            style={{
+              background: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 100%)",
+            }}
+          />
         </div>
       </div>
     </section>

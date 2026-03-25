@@ -3,15 +3,14 @@
 import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Twitter, Linkedin, Github, Mail, ArrowUpRight } from "lucide-react";
+import { Twitter, Linkedin, Mail, ArrowUpRight } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const socials = [
-  { label: "Twitter / X", icon: Twitter, href: "#" },
-  { label: "LinkedIn", icon: Linkedin, href: "#" },
-  { label: "GitHub", icon: Github, href: "#" },
-  { label: "Email", icon: Mail, href: "#" },
+  { label: "Twitter / X", icon: Twitter, href: "https://x.com/henryfromskinny" },
+  { label: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/in/henrymnicholson/" },
+  { label: "Email", icon: Mail, href: "mailto:henrynicholson@sandiego.edu" },
 ];
 
 export function ConnectSection() {
@@ -64,6 +63,42 @@ export function ConnectSection() {
           <p className="mt-3 text-white/25 text-base max-w-md mx-auto leading-relaxed">
             Always building, always learning.
           </p>
+          <div
+            className="mt-4 inline-block relative"
+            data-animate
+            style={{
+              fontFamily: "var(--font-caveat)",
+              fontSize: "16px",
+              color: "rgba(255,255,255,0.18)",
+              transform: "rotate(-2deg)",
+            }}
+          >
+            seriously, DM me &mdash; I respond fast
+            <svg
+              width="50"
+              height="24"
+              viewBox="0 0 50 24"
+              className="absolute -bottom-5 left-1/2 -translate-x-1/2"
+              style={{ transform: "translateX(-50%) rotate(2deg)" }}
+            >
+              <path
+                d="M10 2 C 20 2, 35 6, 40 18"
+                stroke="rgba(255,255,255,0.12)"
+                strokeWidth="1.2"
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray="3 3"
+              />
+              <path
+                d="M37 13 L40 19 L34 17"
+                stroke="rgba(255,255,255,0.12)"
+                strokeWidth="1.2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
         </div>
 
         <div className="flex justify-center gap-2.5 mb-12" data-animate>
@@ -74,6 +109,7 @@ export function ConnectSection() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={label}
+              data-magnetic
               className="group flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
             >
               <Icon size={15} className="text-white/30 group-hover:text-white/60 transition-colors duration-300" />

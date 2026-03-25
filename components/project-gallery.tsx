@@ -131,6 +131,8 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
   const [iframeError, setIframeError] = useState(false);
   const iframeLoadedRef = useRef(false);
 
+  const noteRef = useRef<HTMLDivElement>(null);
+
   // Scroll entrance animations
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -141,6 +143,37 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
           start: "top 82%",
           onEnter: () => {
             gsap.to(headerRef.current, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" });
+          },
+          once: true,
+        });
+      }
+
+      // Post-it note entrance
+      if (noteRef.current) {
+        gsap.set(noteRef.current, { opacity: 0, x: 60, rotation: 8, scale: 0.8 });
+        ScrollTrigger.create({
+          trigger: gridRef.current || sectionRef.current,
+          start: "top 70%",
+          onEnter: () => {
+            gsap.to(noteRef.current, {
+              opacity: 1,
+              x: 0,
+              rotation: -2,
+              scale: 1,
+              duration: 0.7,
+              ease: "back.out(1.6)",
+              delay: 0.4,
+            });
+            // Dismiss after 6 seconds
+            gsap.to(noteRef.current, {
+              opacity: 0,
+              x: 40,
+              rotation: 6,
+              scale: 0.9,
+              duration: 0.5,
+              ease: "power2.in",
+              delay: 6.5,
+            });
           },
           once: true,
         });
@@ -443,13 +476,77 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
 
   return (
     <section ref={sectionRef} className="relative py-16 md:py-24" data-section="projects">
-      <div ref={headerRef} className="w-[90vw] max-w-5xl mx-auto px-6 mb-10 text-center">
+      <div ref={headerRef} className="w-[90vw] max-w-5xl mx-auto px-6 mb-10 text-center relative">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
           What I&apos;m Building
         </h2>
         <p className="mt-3 text-white/25 text-sm md:text-base max-w-lg mx-auto">
           Products, platforms, and experiments at the intersection of AI, marketing, and design.
         </p>
+
+        {/* Post-it note */}
+        <div
+          ref={noteRef}
+          className="hidden lg:block absolute -right-4 xl:right-0 top-2 pointer-events-none select-none"
+          style={{ opacity: 0 }}
+        >
+          {/* Arrow */}
+          <svg
+            width="60"
+            height="40"
+            viewBox="0 0 60 40"
+            className="absolute -left-14 top-8"
+            style={{ transform: "rotate(-5deg)" }}
+          >
+            <path
+              d="M55 5 C 40 5, 15 8, 5 30"
+              stroke="rgba(255,255,255,0.15)"
+              strokeWidth="1.5"
+              fill="none"
+              strokeLinecap="round"
+              strokeDasharray="4 3"
+            />
+            <path
+              d="M2 24 L5 31 L10 26"
+              stroke="rgba(255,255,255,0.15)"
+              strokeWidth="1.5"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+
+          {/* Note */}
+          <div
+            className="relative px-4 py-3 rounded-sm"
+            style={{
+              background: "rgba(255, 235, 120, 0.08)",
+              border: "1px solid rgba(255, 235, 120, 0.12)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,235,120,0.05) inset",
+              transform: "rotate(-2deg)",
+              maxWidth: "180px",
+            }}
+          >
+            <p
+              className="text-[11px] leading-relaxed"
+              style={{
+                fontFamily: "var(--font-caveat), cursive",
+                color: "rgba(255, 235, 120, 0.55)",
+                fontSize: "17px",
+              }}
+            >
+              Click any project for an interactive preview!
+            </p>
+            {/* Tape strip */}
+            <div
+              className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-2.5 rounded-sm"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Desktop bento grid */}

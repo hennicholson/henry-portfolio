@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LeadsTable } from "./leads-table";
 import { ProjectsEditor } from "./projects-editor";
+import { ToolsEditor } from "./tools-editor";
 
-const tabs = ["Leads", "Projects"] as const;
+const tabs = ["Leads", "Projects", "Tools"] as const;
 type Tab = (typeof tabs)[number];
 
 export function DashboardShell() {
@@ -67,6 +68,7 @@ export function DashboardShell() {
       <div className="max-w-5xl mx-auto px-6 py-8">
         {activeTab === "Leads" && <LeadsTable />}
         {activeTab === "Projects" && <ProjectsEditor />}
+        {activeTab === "Tools" && <ToolsEditor />}
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { projects } from "./schema";
-import { sql } from "drizzle-orm";
+import { projects, toolCategories, tools } from "./schema";
+import { sql, eq } from "drizzle-orm";
 
 const seedProjects = [
   {
@@ -143,4 +143,116 @@ async function seed() {
   console.log("Done!");
 }
 
-seed().catch(console.error);
+const seedToolCategories = [
+  {
+    label: "Build",
+    sortOrder: 0,
+    tools: [
+      { name: "React", note: "UI", logoUrl: "/logos/react.svg", sortOrder: 0 },
+      { name: "Next.js", note: "Framework", logoUrl: "/logos/nextjs.svg", sortOrder: 1 },
+      { name: "TypeScript", note: "Language", logoUrl: "/logos/typescript.svg", sortOrder: 2 },
+      { name: "Node.js", note: "Runtime", logoUrl: "/logos/nodejs.svg", sortOrder: 3 },
+      { name: "Tailwind", note: "Styling", logoUrl: "/logos/tailwind.svg", sortOrder: 4 },
+      { name: "GSAP", note: "Animation", logoUrl: "/logos/gsap.svg", sortOrder: 5 },
+    ],
+  },
+  {
+    label: "AI",
+    sortOrder: 1,
+    tools: [
+      { name: "Claude", note: "Reasoning", logoUrl: "/logos/claude.svg", sortOrder: 0 },
+      { name: "GPT", note: "Generation", logoUrl: "/logos/gpt.svg", sortOrder: 1 },
+      { name: "Midjourney", note: "Imagery", logoUrl: "/logos/midjourney.svg", sortOrder: 2 },
+      { name: "Runway", note: "Video", logoUrl: "/logos/runway.svg", sortOrder: 3 },
+      { name: "ElevenLabs", note: "Voice", logoUrl: "/logos/elevenlabs.svg", sortOrder: 4 },
+      { name: "Cursor", note: "Code", logoUrl: "/logos/cursor.svg", sortOrder: 5 },
+    ],
+  },
+  {
+    label: "Ship",
+    sortOrder: 2,
+    tools: [
+      { name: "Vercel", note: "Hosting", logoUrl: "/logos/vercel.svg", sortOrder: 0 },
+      { name: "Netlify", note: "Edge", logoUrl: "/logos/netlify.svg", sortOrder: 1 },
+      { name: "Supabase", note: "Database", logoUrl: "/logos/supabase.svg", sortOrder: 2 },
+      { name: "Whop", note: "Payments", logoUrl: "/logos/whop.svg", sortOrder: 3 },
+      { name: "GitHub", note: "Source", logoUrl: "/logos/github.svg", sortOrder: 4 },
+      { name: "Stripe", note: "Billing", logoUrl: "/logos/stripe.svg", sortOrder: 5 },
+    ],
+  },
+  {
+    label: "Create",
+    sortOrder: 3,
+    tools: [
+      { name: "Figma", note: "Design", logoUrl: "/logos/figma.svg", sortOrder: 0 },
+      { name: "After Effects", note: "Motion", logoUrl: "/logos/aftereffects.svg", sortOrder: 1 },
+      { name: "Premiere", note: "Edit", logoUrl: "/logos/premiere.svg", sortOrder: 2 },
+      { name: "DaVinci", note: "Grade", logoUrl: "/logos/davinci.svg", sortOrder: 3 },
+      { name: "Canva", note: "Quick", logoUrl: "/logos/canva.svg", sortOrder: 4 },
+    ],
+  },
+];
+
+async function seedTools() {
+  const client = neon(process.env.DATABASE_URL!);
+  const db = drizzle(client);
+
+  console.log("Seeding tool categories...");
+
+  for (const cat of seedToolCategories) {
+    // Upsert category by label
+    const existing = await db
+      .select()
+      .from(toolCategories)
+      .where(eq(toolCategories.label, cat.label));
+
+    let catId: number;
+    if (existing.length > 0) {
+      catId = existing[0].id;
+      await db
+        .update(toolCategories)
+        .set({ sortOrder: cat.sortOrder, updatedAt: sql`now()` })
+        .where(eq(toolCategories.id, catId));
+    } else {
+      const [row] = await db
+        .insert(toolCategories)
+        .values({ label: cat.label, sortOrder: cat.sortOrder })
+        .returning();
+      catId = row.id;
+    }
+    console.log(`  ✓ Category: ${cat.label} (id: ${catId})`);
+
+    for (const tool of cat.tools) {
+      // Check if tool exists in this category
+      const existingTool = await db
+        .select()
+        .from(tools)
+        .where(eq(tools.name, tool.name));
+
+      if (existingTool.length > 0 && existingTool[0].categoryId === catId) {
+        await db
+          .update(tools)
+          .set({
+            note: tool.note,
+            logoUrl: tool.logoUrl,
+            sortOrder: tool.sortOrder,
+            updatedAt: sql`now()`,
+          })
+          .where(eq(tools.id, existingTool[0].id));
+      } else if (existingTool.length === 0) {
+        await db.insert(tools).values({
+          categoryId: catId,
+          name: tool.name,
+          note: tool.note,
+          logoUrl: tool.logoUrl,
+          sortOrder: tool.sortOrder,
+        });
+      }
+      console.log(`    ✓ ${tool.name}`);
+    }
+  }
+
+  console.log("Tools seeded!");
+}
+
+seed().then(() => seedTools()).catch(console.error);

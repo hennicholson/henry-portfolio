@@ -29,7 +29,12 @@ function MarqueeRow({ items, direction }: { items: string[]; direction: "left" |
       >
         {doubled.map((item, i) => (
           <span key={i} className="flex items-center shrink-0">
-            <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-white/[0.09] group-hover:text-white/25 transition-colors duration-700 px-4">
+            <span
+              className="marquee-chrome-text text-[10px] font-mono tracking-[0.3em] uppercase px-4 transition-all duration-700 group-hover:opacity-80"
+              style={{
+                animationDelay: `${(i * 0.6) % 4}s`,
+              }}
+            >
               {item}
             </span>
             <span className="text-white/[0.06] text-[8px] select-none">&middot;</span>
@@ -71,6 +76,31 @@ export function SkillsMarquee() {
         @keyframes marquee-right {
           0% { transform: translateX(-50%); }
           100% { transform: translateX(0); }
+        }
+        @keyframes chrome-sweep {
+          0% {
+            background-position: -200% center;
+          }
+          100% {
+            background-position: 200% center;
+          }
+        }
+        .marquee-chrome-text {
+          background: linear-gradient(
+            90deg,
+            rgba(255,255,255,0.08) 0%,
+            rgba(255,255,255,0.08) 35%,
+            rgba(255,255,255,0.45) 48%,
+            rgba(200,220,255,0.6) 50%,
+            rgba(255,255,255,0.45) 52%,
+            rgba(255,255,255,0.08) 65%,
+            rgba(255,255,255,0.08) 100%
+          );
+          background-size: 200% 100%;
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: chrome-sweep 4s ease-in-out infinite;
         }
       `}</style>
       <div ref={sectionRef} className="py-5 md:py-6 overflow-hidden select-none">

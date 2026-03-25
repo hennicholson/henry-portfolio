@@ -42,3 +42,31 @@ export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 export type Lead = typeof leads.$inferSelect;
 export type NewLead = typeof leads.$inferInsert;
+
+export const toolCategories = pgTable("tool_categories", {
+  id: serial("id").primaryKey(),
+  label: text("label").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  visible: boolean("visible").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const tools = pgTable("tools", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id")
+    .notNull()
+    .references(() => toolCategories.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  note: text("note").notNull().default(""),
+  logoUrl: text("logo_url"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  visible: boolean("visible").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type ToolCategory = typeof toolCategories.$inferSelect;
+export type NewToolCategory = typeof toolCategories.$inferInsert;
+export type Tool = typeof tools.$inferSelect;
+export type NewTool = typeof tools.$inferInsert;

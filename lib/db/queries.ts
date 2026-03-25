@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { projects, leads } from "./schema";
+import { projects, leads, toolCategories, tools } from "./schema";
 import { eq, asc, desc } from "drizzle-orm";
 import type { ProjectData } from "@/components/project-gallery";
 export type { ProjectData };
@@ -39,4 +39,37 @@ export async function getAllProjects() {
 
 export async function getAllLeads() {
   return db.select().from(leads).orderBy(desc(leads.createdAt));
+}
+
+export interface ToolCategoryWithTools {
+  id: number;
+  label: string;
+  tools: { id: number; name: string; note: string; logoUrl: string | null }[];
+}
+
+export async function getVisibleToolCategories(): Promise<ToolCategoryWithTools[]> {
+  try {
+    const cats = await db
+      .select()
+      .from(toolCategories)
+      .where(eq(toolCategories.visible, true))
+      .orderBy(asc(toolCategories.sortOrder));
+
+    const allTools = await db
+      .select()
+      .from(tools)
+      .where(eq(tools.visible, true))
+      .orderBy(asc(tools.sortOrder));
+
+    return cats.map((cat) => ({
+      id: cat.id,
+      label: cat.label,
+      tools: allTools
+        .filter((t) => t.categoryId === cat.id)
+        .map((t) => ({ id: t.id, name: t.name, note: t.note, logoUrl: t.logoUrl })),
+    }));
+  } catch (error) {
+    console.error("Failed to fetch tool categories:", error);
+    return [];
+  }
 }

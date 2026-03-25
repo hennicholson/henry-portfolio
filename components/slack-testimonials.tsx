@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -12,7 +12,7 @@ const messages = [
     initials: "SC",
     color: "rgba(59, 130, 246, 0.25)",
     timestamp: "2:34 PM",
-    text: "Henry brings a rare combination of technical skill and creative vision. He doesn't just build things \u2014 he builds the right things, fast.",
+    text: "Henry brings a rare combination of technical skill and creative vision. He doesn\u2019t just build things \u2014 he builds the right things, fast.",
     reactions: [
       { emoji: "\uD83D\uDD25", count: 3 },
       { emoji: "\uD83D\uDCAF", count: 2 },
@@ -44,14 +44,30 @@ const messages = [
   },
 ];
 
+function TypingDots() {
+  return (
+    <div className="flex items-center gap-2 h-9">
+      <span className="text-xs text-white/30">typing</span>
+      <div className="flex gap-1">
+        <div className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" style={{ animationDelay: "0ms" }} />
+        <div className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" style={{ animationDelay: "150ms" }} />
+        <div className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" style={{ animationDelay: "300ms" }} />
+      </div>
+    </div>
+  );
+}
+
 export default function SlackTestimonials() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const [revealedMessages, setRevealedMessages] = useState<Set<number>>(new Set());
+  const [typingMessages, setTypingMessages] = useState<Set<number>>(new Set());
+  const hasTriggered = useRef(false);
 
   useEffect(() => {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Container
+      // Container fade in
       gsap.from("[data-slack]", {
         scrollTrigger: { trigger: "[data-slack]", start: "top 82%", once: true },
         opacity: 0,
@@ -60,32 +76,35 @@ export default function SlackTestimonials() {
         ease: "power3.out",
       });
 
-      // Each message — individual ScrollTriggers
-      const msgs = sectionRef.current!.querySelectorAll("[data-msg]");
-      msgs.forEach((msg, i) => {
-        gsap.from(msg, {
-          scrollTrigger: { trigger: msg, start: "top 90%", once: true },
-          opacity: 0,
-          y: 16,
-          duration: 0.5,
-          delay: i * 0.08,
-          ease: "power3.out",
-        });
+      // Trigger message reveal sequence
+      ScrollTrigger.create({
+        trigger: "[data-slack]",
+        start: "top 75%",
+        once: true,
+        onEnter: () => {
+          if (hasTriggered.current) return;
+          hasTriggered.current = true;
 
-        const reactions = msg.querySelectorAll("[data-rx]");
-        reactions.forEach((rx, j) => {
-          gsap.from(rx, {
-            scrollTrigger: { trigger: msg, start: "top 88%", once: true },
-            scale: 0.5,
-            opacity: 0,
-            duration: 0.35,
-            delay: i * 0.08 + j * 0.05 + 0.25,
-            ease: "back.out(1.6)",
+          messages.forEach((_, i) => {
+            // Start typing
+            setTimeout(() => {
+              setTypingMessages((prev) => new Set(prev).add(i));
+            }, i * 1400);
+
+            // Stop typing, reveal message
+            setTimeout(() => {
+              setTypingMessages((prev) => {
+                const next = new Set(prev);
+                next.delete(i);
+                return next;
+              });
+              setRevealedMessages((prev) => new Set(prev).add(i));
+            }, i * 1400 + 800);
           });
-        });
+        },
       });
 
-      // Typing indicator
+      // Typing indicator at bottom
       gsap.from("[data-typing]", {
         scrollTrigger: { trigger: "[data-typing]", start: "top 92%", once: true },
         opacity: 0,
@@ -97,6 +116,22 @@ export default function SlackTestimonials() {
 
     return () => ctx.revert();
   }, []);
+
+  // Animate reactions after message reveal
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    revealedMessages.forEach((i) => {
+      const msg = sectionRef.current!.querySelector(`[data-msg="${i}"]`);
+      if (!msg) return;
+      const reactions = msg.querySelectorAll("[data-rx]");
+      reactions.forEach((rx, j) => {
+        gsap.fromTo(rx,
+          { scale: 0.5, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.35, delay: j * 0.05 + 0.2, ease: "back.out(1.6)" }
+        );
+      });
+    });
+  }, [revealedMessages]);
 
   return (
     <section ref={sectionRef} data-section="testimonials" className="py-14 md:py-20">
@@ -134,7 +169,7 @@ export default function SlackTestimonials() {
           {/* Messages */}
           <div className="px-5 md:px-6 py-4 md:py-5 space-y-5">
             {messages.map((message, index) => (
-              <div key={index} data-msg className="flex gap-3">
+              <div key={index} data-msg={index} className="flex gap-3">
                 {/* Avatar */}
                 <div
                   className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-xs font-semibold select-none"
@@ -157,60 +192,73 @@ export default function SlackTestimonials() {
                     </span>
                   </div>
 
-                  {/* Text */}
-                  <p className="text-sm leading-relaxed text-white/50 mb-2">
-                    {message.text}
-                  </p>
+                  {/* Typing indicator OR message content */}
+                  {typingMessages.has(index) && !revealedMessages.has(index) && (
+                    <TypingDots />
+                  )}
 
-                  {/* Reactions */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {message.reactions.map((rx, rIdx) => (
-                      <span
-                        key={rIdx}
-                        data-rx
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs cursor-default transition-all duration-200 hover:scale-105"
-                        style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                        }}
+                  <div style={{
+                    opacity: revealedMessages.has(index) ? 1 : 0,
+                    transform: revealedMessages.has(index) ? "translateY(0)" : "translateY(8px)",
+                    transition: "opacity 0.4s ease-out, transform 0.4s ease-out",
+                    display: typingMessages.has(index) && !revealedMessages.has(index) ? "none" : "block",
+                  }}>
+                    {/* Text */}
+                    <p className="text-sm leading-relaxed text-white/50 mb-2">
+                      {message.text}
+                    </p>
+
+                    {/* Reactions */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {message.reactions.map((rx, rIdx) => (
+                        <span
+                          key={rIdx}
+                          data-rx
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs cursor-default transition-all duration-200 hover:scale-105"
+                          style={{
+                            background: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            opacity: 0,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                            e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                          }}
+                        >
+                          <span>{rx.emoji}</span>
+                          <span className="font-mono text-[10px] text-white/35">
+                            {rx.count}
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Thread */}
+                    {message.thread && (
+                      <button
+                        className="mt-1.5 text-xs font-medium transition-colors duration-200"
+                        style={{ color: "rgba(96,165,250,0.6)" }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                          e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
+                          e.currentTarget.style.color = "rgba(96,165,250,0.8)";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                          e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                          e.currentTarget.style.color = "rgba(96,165,250,0.6)";
                         }}
                       >
-                        <span>{rx.emoji}</span>
-                        <span className="font-mono text-[10px] text-white/35">
-                          {rx.count}
-                        </span>
-                      </span>
-                    ))}
+                        {message.thread.replies} replies &middot; Last reply{" "}
+                        {message.thread.lastReply}
+                      </button>
+                    )}
                   </div>
-
-                  {/* Thread */}
-                  {message.thread && (
-                    <button
-                      className="mt-1.5 text-xs font-medium transition-colors duration-200"
-                      style={{ color: "rgba(96,165,250,0.6)" }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "rgba(96,165,250,0.8)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "rgba(96,165,250,0.6)";
-                      }}
-                    >
-                      {message.thread.replies} replies &middot; Last reply{" "}
-                      {message.thread.lastReply}
-                    </button>
-                  )}
                 </div>
               </div>
             ))}
 
-            {/* Typing indicator — always rendered, animated by GSAP */}
+            {/* Typing indicator */}
             <div data-typing className="flex gap-3 items-center">
               <div
                 className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-xs font-semibold select-none"
@@ -221,23 +269,7 @@ export default function SlackTestimonials() {
               >
                 HN
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-white/30">typing</span>
-                <div className="flex gap-1">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse"
-                    style={{ animationDelay: "0ms" }}
-                  />
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse"
-                    style={{ animationDelay: "150ms" }}
-                  />
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse"
-                    style={{ animationDelay: "300ms" }}
-                  />
-                </div>
-              </div>
+              <TypingDots />
             </div>
           </div>
         </div>

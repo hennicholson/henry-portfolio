@@ -222,7 +222,7 @@ export function ParallaxHero() {
               {textContent(h1Ref, subtitleRef, true)}
             </div>
 
-            {/* Layer 4: Foreground */}
+            {/* Layer 4: Foreground (mobile: single image, desktop: ridge + figure) */}
             <img
               src="/hero-fg.webp"
               loading="eager"
@@ -230,13 +230,26 @@ export function ParallaxHero() {
               alt=""
               className="parallax__layer-img parallax__layer-hw md:!hidden"
             />
-            <img
-              src="/hero-fg-desktop.webp"
-              loading="eager"
+            <div
               data-parallax-layer="4"
-              alt=""
               className="parallax__layer-img parallax__layer-hw !hidden md:!block"
-            />
+            >
+              <img
+                src="/hero-ridge-desktop.webp"
+                loading="eager"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <video
+                src="/hero-figure.webm"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ top: "3px" }}
+              />
+            </div>
 
             {/* Layer 3 (ghost): X-ray text */}
             <div data-parallax-layer="3" className="parallax__layer-title parallax__layer-title--ghost parallax__layer-hw">

@@ -13,6 +13,7 @@ const milestones = [
     title: "The Spark",
     body: "Built my first online business from a bedroom in Minnesota. No mentors, no playbook \u2014 just a kid who figured out the internet could be more than entertainment.",
     quote: "You don\u2019t need permission to start.",
+    annotation: "this changed everything \u2726",
   },
   {
     year: "2020",
@@ -27,6 +28,7 @@ const milestones = [
     title: "First Product Launch",
     body: "Designed, built, and shipped my first SaaS product. Started experimenting with AI tools before most people knew they existed.",
     quote: "Done beats perfect. Every time.",
+    annotation: "17 and shipping SaaS?!",
   },
   {
     year: "2024",
@@ -41,6 +43,7 @@ const milestones = [
     title: "Building the Future",
     body: "Creating LaunchPad, Skinny Studio, and Slop.design while studying marketing at the University of San Diego. Learning in public, no gatekeeping.",
     quote: "The work is never done \u2014 and that\u2019s the point.",
+    annotation: "\u2190 you are here",
   },
 ];
 
@@ -51,12 +54,12 @@ export function ScrollTimeline() {
   const lineFillRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const annotationRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
   useEffect(() => {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Header blur-to-sharp entrance
       if (headerRef.current) {
         gsap.set(headerRef.current, { opacity: 0, y: 30 });
         ScrollTrigger.create({
@@ -69,7 +72,6 @@ export function ScrollTimeline() {
         });
       }
 
-      // Progress line fills as you scroll through the timeline
       if (lineFillRef.current && lineTrackRef.current) {
         gsap.set(lineFillRef.current, { scaleY: 0 });
         ScrollTrigger.create({
@@ -85,7 +87,6 @@ export function ScrollTimeline() {
         });
       }
 
-      // Each entry fades in + slides up on scroll, dot lights up
       entryRefs.current.forEach((el, i) => {
         if (!el) return;
         gsap.set(el, { opacity: 0, y: 40 });
@@ -100,7 +101,6 @@ export function ScrollTimeline() {
               duration: 0.7,
               ease: "power3.out",
             });
-            // Light up corresponding dot
             const dot = dotRefs.current[i];
             if (dot) {
               gsap.to(dot, {
@@ -111,9 +111,37 @@ export function ScrollTimeline() {
                 ease: "elastic.out(1, 0.6)",
               });
             }
+            // Annotation scribble in
+            const ann = annotationRefs.current[i];
+            if (ann) {
+              const chars = ann.querySelectorAll<HTMLSpanElement>("[data-char]");
+              chars.forEach((ch, ci) => {
+                gsap.to(ch, {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.08,
+                  delay: 0.4 + ci * 0.04,
+                  ease: "power1.out",
+                });
+              });
+              // Overall container fade
+              gsap.to(ann, {
+                opacity: 1,
+                duration: 0.15,
+                delay: 0.35,
+              });
+            }
           },
           once: true,
         });
+      });
+
+      // Set initial state for annotations
+      annotationRefs.current.forEach((ann) => {
+        if (!ann) return;
+        gsap.set(ann, { opacity: 0 });
+        const chars = ann.querySelectorAll("[data-char]");
+        chars.forEach((ch) => gsap.set(ch, { opacity: 0, y: 4 }));
       });
     }, sectionRef);
 
@@ -122,7 +150,6 @@ export function ScrollTimeline() {
 
   return (
     <section ref={sectionRef} className="relative py-14 md:py-20" data-section="journey">
-      {/* Header */}
       <div ref={headerRef} className="w-[90vw] max-w-5xl mx-auto px-6 mb-10 text-center">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
           The Journey
@@ -132,10 +159,8 @@ export function ScrollTimeline() {
         </p>
       </div>
 
-      {/* Timeline content */}
       <div className="w-[90vw] max-w-5xl mx-auto px-6">
         <div className="relative">
-          {/* Vertical progress line */}
           <div
             ref={lineTrackRef}
             className="absolute left-0 md:left-[72px] top-0 bottom-0 w-[2px]"
@@ -151,7 +176,6 @@ export function ScrollTimeline() {
             />
           </div>
 
-          {/* Entries */}
           <div className="space-y-16 md:space-y-20">
             {milestones.map((m, i) => (
               <div
@@ -159,7 +183,6 @@ export function ScrollTimeline() {
                 ref={(el) => { entryRefs.current[i] = el; }}
                 className="relative pl-8 md:pl-24"
               >
-                {/* Dot on the line */}
                 <div
                   ref={(el) => { dotRefs.current[i] = el; }}
                   className="absolute left-0 md:left-[72px] top-2 w-[7px] h-[7px] rounded-full -translate-x-[2.5px]"
@@ -169,7 +192,6 @@ export function ScrollTimeline() {
                   }}
                 />
 
-                {/* Year badge */}
                 <div className="flex items-baseline gap-3 mb-3">
                   <span className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                     {m.year}
@@ -179,7 +201,6 @@ export function ScrollTimeline() {
                   </span>
                 </div>
 
-                {/* Content */}
                 <h3 className="text-lg md:text-xl font-semibold text-white/90 mb-2">
                   {m.title}
                 </h3>
@@ -192,6 +213,27 @@ export function ScrollTimeline() {
                 >
                   &ldquo;{m.quote}&rdquo;
                 </p>
+
+                {/* Margin annotation — scribbles in character by character */}
+                {(m as { annotation?: string }).annotation && (
+                  <span
+                    ref={(el) => { annotationRefs.current[i] = el; }}
+                    className="hidden lg:block absolute -right-8 xl:-right-16 top-1 select-none pointer-events-none"
+                    style={{
+                      fontFamily: "var(--font-caveat)",
+                      fontSize: "15px",
+                      color: "rgba(255,235,120,0.35)",
+                      whiteSpace: "nowrap",
+                      transform: `rotate(${-3 + (i % 2) * 2}deg)`,
+                    }}
+                  >
+                    {(m as { annotation?: string }).annotation!.split("").map((ch, ci) => (
+                      <span key={ci} data-char className="inline-block" style={{ opacity: 0 }}>
+                        {ch === " " ? "\u00A0" : ch}
+                      </span>
+                    ))}
+                  </span>
+                )}
               </div>
             ))}
           </div>

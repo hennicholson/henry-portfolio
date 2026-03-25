@@ -12,12 +12,15 @@ import { ConnectSection } from "@/components/connect-section";
 import { CommandPalette } from "@/components/command-palette";
 import { EasterEggs } from "@/components/easter-eggs";
 import { VoiceCTA } from "@/components/voice/voice-cta";
-import { getVisibleProjects } from "@/lib/db/queries";
+import { getVisibleProjects, getVisibleToolCategories } from "@/lib/db/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const projects = await getVisibleProjects();
+  const [projects, toolCategories] = await Promise.all([
+    getVisibleProjects(),
+    getVisibleToolCategories(),
+  ]);
 
   return (
     <main className="bg-[#050508]">
@@ -37,7 +40,7 @@ export default async function Home() {
 
       <ScrollTimeline />
 
-      <Toolbox />
+      <Toolbox categories={toolCategories.length > 0 ? toolCategories : undefined} />
 
       <SectionTransition variant="chapter" />
 
