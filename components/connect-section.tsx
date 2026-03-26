@@ -12,9 +12,9 @@ const socials = [
     label: "Twitter / X", icon: Twitter, href: "https://x.com/henryfromskinny",
     hoverAnim: (el: HTMLElement) => {
       gsap.to(el, { rotation: -15, duration: 0.15, ease: "power2.out",
-        onComplete: () => gsap.to(el, { rotation: 15, duration: 0.1, ease: "power2.out",
-          onComplete: () => gsap.to(el, { rotation: 0, duration: 0.2, ease: "elastic.out(1,0.5)" }),
-        }),
+        onComplete() { gsap.to(el, { rotation: 15, duration: 0.1, ease: "power2.out",
+          onComplete() { gsap.to(el, { rotation: 0, duration: 0.2, ease: "elastic.out(1,0.5)" }); },
+        }); },
       });
     },
   },
@@ -22,7 +22,7 @@ const socials = [
     label: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/in/henrymnicholson/",
     hoverAnim: (el: HTMLElement) => {
       gsap.to(el, { y: -3, duration: 0.2, ease: "power2.out",
-        onComplete: () => gsap.to(el, { y: 0, duration: 0.4, ease: "bounce.out" }),
+        onComplete() { gsap.to(el, { y: 0, duration: 0.4, ease: "bounce.out" }); },
       });
     },
   },
@@ -30,7 +30,7 @@ const socials = [
     label: "Email", icon: Mail, href: "mailto:henrynicholson@sandiego.edu",
     hoverAnim: (el: HTMLElement) => {
       gsap.to(el, { scaleY: 1.2, scaleX: 0.9, duration: 0.15, ease: "power2.out",
-        onComplete: () => gsap.to(el, { scaleY: 1, scaleX: 1, duration: 0.3, ease: "elastic.out(1,0.4)" }),
+        onComplete() { gsap.to(el, { scaleY: 1, scaleX: 1, duration: 0.3, ease: "elastic.out(1,0.4)" }); },
       });
     },
   },
