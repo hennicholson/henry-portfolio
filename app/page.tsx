@@ -12,19 +12,20 @@ import { ConnectSection } from "@/components/connect-section";
 import { CommandPalette } from "@/components/command-palette";
 import { EasterEggs } from "@/components/easter-eggs";
 import { VoiceCTA } from "@/components/voice/voice-cta";
-import { getVisibleProjects, getVisibleToolCategories } from "@/lib/db/queries";
+import { getVisibleProjects, getVisibleToolCategories, getVisibleTestimonials } from "@/lib/db/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [projects, toolCategories] = await Promise.all([
+  const [projects, toolCategories, dbTestimonials] = await Promise.all([
     getVisibleProjects(),
     getVisibleToolCategories(),
+    getVisibleTestimonials(),
   ]);
 
   return (
     <main className="bg-[#050508]">
-      <ScrollProgress />
+<ScrollProgress />
       <CommandPalette />
       <EasterEggs />
 
@@ -46,7 +47,14 @@ export default async function Home() {
 
       <ProjectGallery projects={projects.length > 0 ? projects : undefined} />
 
-      <SlackTestimonials />
+      <SlackTestimonials testimonials={dbTestimonials.length > 0 ? dbTestimonials.map((t) => ({
+        id: t.id,
+        name: t.name,
+        text: t.text,
+        avatarUrl: t.avatarUrl,
+        workplace: t.workplace,
+        color: t.color,
+      })) : undefined} />
 
       <NewsletterCTA />
 

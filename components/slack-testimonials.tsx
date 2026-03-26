@@ -1,84 +1,230 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Send, X, User } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const messages = [
+interface TestimonialData {
+  id?: number;
+  name: string;
+  text: string;
+  avatarUrl?: string | null;
+  workplace?: string | null;
+  color: string;
+}
+
+const fallbackMessages: TestimonialData[] = [
   {
-    author: "Sarah Chen",
-    initials: "SC",
-    color: "rgba(59, 130, 246, 0.25)",
-    timestamp: "2:34 PM",
+    name: "Sarah Chen",
     text: "Henry brings a rare combination of technical skill and creative vision. He doesn\u2019t just build things \u2014 he builds the right things, fast.",
-    reactions: [
-      { emoji: "\uD83D\uDD25", count: 3 },
-      { emoji: "\uD83D\uDCAF", count: 2 },
-    ],
-    thread: { replies: 3, lastReply: "2:45 PM" },
+    color: "rgba(59, 130, 246, 0.25)",
   },
   {
-    author: "Alex Rivera",
-    initials: "AR",
-    color: "rgba(168, 85, 247, 0.25)",
-    timestamp: "3:12 PM",
+    name: "Alex Rivera",
     text: "ForeFront changed how I think about AI. Henry made something complex feel approachable and actually useful for students like me.",
-    reactions: [
-      { emoji: "\uD83D\uDE4C", count: 5 },
-      { emoji: "\u2764\uFE0F", count: 4 },
-    ],
+    color: "rgba(168, 85, 247, 0.25)",
   },
   {
-    author: "Jordan Lee",
-    initials: "JL",
-    color: "rgba(34, 197, 94, 0.25)",
-    timestamp: "4:56 PM",
+    name: "Jordan Lee",
     text: "Context Engineering is the one newsletter I actually read every week. Clear, practical, no fluff. Henry has a gift for making AI tangible.",
-    reactions: [
-      { emoji: "\uD83D\uDCA1", count: 6 },
-      { emoji: "\uD83D\uDCDA", count: 2 },
-      { emoji: "\uD83D\uDC4F", count: 3 },
-    ],
+    color: "rgba(34, 197, 94, 0.25)",
   },
 ];
 
+function getInitials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+}
+
 function TypingDots() {
   return (
-    <div className="flex items-center gap-2 h-9">
-      <span className="text-xs text-white/30">typing</span>
+    <div className="flex items-center gap-2 py-2">
+      <span className="text-[11px] text-white/20">typing</span>
       <div className="flex gap-1">
-        <div className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" style={{ animationDelay: "0ms" }} />
-        <div className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" style={{ animationDelay: "150ms" }} />
-        <div className="w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse" style={{ animationDelay: "300ms" }} />
+        {[0, 150, 300].map((delay) => (
+          <div
+            key={delay}
+            className="w-1.5 h-1.5 rounded-full bg-white/25 animate-pulse"
+            style={{ animationDelay: `${delay}ms` }}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-export default function SlackTestimonials() {
+function MessageItem({ msg, revealed, typing }: { msg: TestimonialData; revealed: boolean; typing: boolean }) {
+  return (
+    <div className="flex gap-3 py-3">
+      {/* Avatar */}
+      <div
+        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-semibold select-none"
+        style={{ backgroundColor: msg.color, color: "rgba(255,255,255,0.7)" }}
+      >
+        {msg.avatarUrl ? (
+          <img src={msg.avatarUrl} alt="" className="w-full h-full rounded-lg object-cover" />
+        ) : (
+          getInitials(msg.name)
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2 mb-0.5">
+          <span className="font-semibold text-[13px] text-white/60">{msg.name}</span>
+          {msg.workplace && (
+            <span className="text-[10px] font-mono text-white/15">{msg.workplace}</span>
+          )}
+        </div>
+
+        {/* Typing overlay — same height as message */}
+        <div className="relative">
+          {typing && !revealed && (
+            <div className="absolute inset-0 z-[1]">
+              <TypingDots />
+            </div>
+          )}
+          <p
+            className="text-[13px] leading-relaxed text-white/35 transition-opacity duration-500"
+            style={{ opacity: revealed ? 1 : 0 }}
+          >
+            {msg.text}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface SubmitFormProps {
+  messageText: string;
+  onSubmit: (data: { name: string; avatarUrl?: string; workplace?: string }) => void;
+  onCancel: () => void;
+}
+
+function SubmitForm({ messageText, onSubmit, onCancel }: SubmitFormProps) {
+  const [name, setName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [workplace, setWorkplace] = useState("");
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (formRef.current) {
+      gsap.fromTo(formRef.current,
+        { opacity: 0, y: 10, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" }
+      );
+    }
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    onSubmit({
+      name: name.trim(),
+      avatarUrl: avatarUrl.trim() || undefined,
+      workplace: workplace.trim() || undefined,
+    });
+  };
+
+  return (
+    <div
+      ref={formRef}
+      className="absolute inset-0 z-20 flex items-center justify-center p-4"
+      style={{
+        background: "rgba(8, 8, 14, 0.85)",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[11px] font-mono tracking-wider uppercase text-white/30">
+            Complete your message
+          </span>
+          <button type="button" onClick={onCancel} className="p-1 text-white/20 hover:text-white/40 transition-colors">
+            <X size={14} />
+          </button>
+        </div>
+
+        {/* Preview */}
+        <div
+          className="rounded-lg px-3 py-2 text-[12px] text-white/25 leading-relaxed"
+          style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}
+        >
+          &ldquo;{messageText}&rdquo;
+        </div>
+
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name *"
+          required
+          className="w-full rounded-lg px-3 py-2 text-sm text-white outline-none transition-colors focus:border-white/15"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+        />
+        <input
+          value={avatarUrl}
+          onChange={(e) => setAvatarUrl(e.target.value)}
+          placeholder="Profile image URL (optional)"
+          className="w-full rounded-lg px-3 py-2 text-xs font-mono text-white/40 outline-none transition-colors focus:border-white/15"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+        />
+        <input
+          value={workplace}
+          onChange={(e) => setWorkplace(e.target.value)}
+          placeholder="Where you work (optional)"
+          className="w-full rounded-lg px-3 py-2 text-xs text-white/30 outline-none transition-colors focus:border-white/15"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+        />
+
+        <button
+          type="submit"
+          className="w-full py-2.5 rounded-lg text-sm font-medium text-white/70 hover:text-white/90 transition-all duration-300"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          Send Message
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function SlackTestimonials({
+  testimonials,
+}: {
+  testimonials?: TestimonialData[];
+}) {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const [revealedMessages, setRevealedMessages] = useState<Set<number>>(new Set());
   const [typingMessages, setTypingMessages] = useState<Set<number>>(new Set());
   const hasTriggered = useRef(false);
 
+  const [inputText, setInputText] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const messages = testimonials && testimonials.length > 0 ? testimonials : fallbackMessages;
+
+  // Scroll-triggered message reveal
   useEffect(() => {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Container fade in
-      gsap.from("[data-slack]", {
-        scrollTrigger: { trigger: "[data-slack]", start: "top 82%", once: true },
+      gsap.from("[data-board]", {
+        scrollTrigger: { trigger: "[data-board]", start: "top 82%", once: true },
         opacity: 0,
         y: 30,
         duration: 0.7,
         ease: "power3.out",
       });
 
-      // Trigger message reveal sequence
       ScrollTrigger.create({
-        trigger: "[data-slack]",
+        trigger: "[data-board]",
         start: "top 75%",
         once: true,
         onEnter: () => {
@@ -86,12 +232,10 @@ export default function SlackTestimonials() {
           hasTriggered.current = true;
 
           messages.forEach((_, i) => {
-            // Start typing
             setTimeout(() => {
               setTypingMessages((prev) => new Set(prev).add(i));
-            }, i * 1400);
+            }, i * 1200);
 
-            // Stop typing, reveal message
             setTimeout(() => {
               setTypingMessages((prev) => {
                 const next = new Set(prev);
@@ -99,179 +243,149 @@ export default function SlackTestimonials() {
                 return next;
               });
               setRevealedMessages((prev) => new Set(prev).add(i));
-            }, i * 1400 + 800);
+            }, i * 1200 + 700);
           });
         },
-      });
-
-      // Typing indicator at bottom
-      gsap.from("[data-typing]", {
-        scrollTrigger: { trigger: "[data-typing]", start: "top 92%", once: true },
-        opacity: 0,
-        duration: 0.4,
-        delay: 0.5,
-        ease: "power3.out",
       });
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [messages]);
 
-  // Animate reactions after message reveal
-  useEffect(() => {
-    if (!sectionRef.current) return;
-    revealedMessages.forEach((i) => {
-      const msg = sectionRef.current!.querySelector(`[data-msg="${i}"]`);
-      if (!msg) return;
-      const reactions = msg.querySelectorAll("[data-rx]");
-      reactions.forEach((rx, j) => {
-        gsap.fromTo(rx,
-          { scale: 0.5, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.35, delay: j * 0.05 + 0.2, ease: "back.out(1.6)" }
-        );
+  const handleSendClick = () => {
+    if (!inputText.trim()) return;
+    setShowForm(true);
+  };
+
+  const handleFormSubmit = async (data: { name: string; avatarUrl?: string; workplace?: string }) => {
+    try {
+      await fetch("/api/testimonials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, text: inputText }),
       });
-    });
-  }, [revealedMessages]);
+      setShowForm(false);
+      setInputText("");
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 3500);
+    } catch {
+      // silently fail
+    }
+  };
 
   return (
     <section ref={sectionRef} data-section="testimonials" className="py-14 md:py-20">
       <div className="w-[90vw] max-w-5xl mx-auto px-6">
         <div
-          data-slack
-          className="rounded-xl overflow-hidden"
+          data-board
+          className="relative rounded-2xl overflow-hidden"
           style={{
-            background:
-              "linear-gradient(180deg, rgba(12, 12, 20, 0.9) 0%, rgba(8, 8, 14, 0.95) 100%)",
+            background: "rgba(12, 12, 20, 0.5)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             border: "1px solid rgba(255, 255, 255, 0.06)",
+            boxShadow: "0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)",
           }}
         >
-          {/* Channel Header */}
+          {/* Inner glow */}
           <div
-            className="px-5 md:px-6 py-3.5 md:py-4"
+            className="absolute inset-0 pointer-events-none"
             style={{
-              backgroundColor: "rgba(12, 12, 20, 0.95)",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+              background: "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 60%)",
             }}
+          />
+
+          {/* Header */}
+          <div
+            className="relative px-5 md:px-6 py-3.5 md:py-4"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
           >
             <div className="flex items-baseline gap-2 mb-0.5">
-              <span className="text-base md:text-lg font-bold text-white/90">
-                # what-people-say
+              <span className="text-base md:text-lg font-bold text-white/70">
+                # kind-words
               </span>
-              <span className="text-xs md:text-sm text-white/30 hidden sm:inline">
-                Testimonials &amp; kind words
+              <span className="text-xs md:text-sm text-white/20 hidden sm:inline">
+                Leave a message
               </span>
             </div>
-            <div className="font-mono text-[11px] text-white/20">
-              3 members &middot; &#x1F4CC; 3 pinned items
+            <div className="font-mono text-[11px] text-white/15">
+              {messages.length} messages
             </div>
           </div>
 
-          {/* Messages */}
-          <div className="px-5 md:px-6 py-4 md:py-5 space-y-5">
-            {messages.map((message, index) => (
-              <div key={index} data-msg={index} className="flex gap-3">
-                {/* Avatar */}
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-xs font-semibold select-none"
+          {/* Messages area — fixed height, no layout shift */}
+          <div
+            ref={messagesRef}
+            className="relative px-5 md:px-6 overflow-y-auto"
+            style={{ height: "340px" }}
+          >
+            <div className="divide-y divide-white/[0.03]">
+              {messages.map((msg, index) => (
+                <MessageItem
+                  key={msg.id || index}
+                  msg={msg}
+                  revealed={revealedMessages.has(index)}
+                  typing={typingMessages.has(index)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Chat input — frosted separator */}
+          <div
+            className="relative px-5 md:px-6 py-3.5"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+          >
+            {submitSuccess ? (
+              <div className="flex items-center justify-center py-2">
+                <span
+                  className="text-sm"
                   style={{
-                    backgroundColor: message.color,
-                    color: "rgba(255, 255, 255, 0.7)",
+                    fontFamily: "var(--font-caveat)",
+                    color: "rgba(74,222,128,0.5)",
+                    fontSize: "15px",
                   }}
                 >
-                  {message.initials}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  {/* Author + time */}
-                  <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="font-bold text-sm text-white/80">
-                      {message.author}
-                    </span>
-                    <span className="font-mono text-[11px] text-white/20">
-                      {message.timestamp}
-                    </span>
-                  </div>
-
-                  {/* Typing indicator OR message content */}
-                  {typingMessages.has(index) && !revealedMessages.has(index) && (
-                    <TypingDots />
-                  )}
-
-                  <div style={{
-                    opacity: revealedMessages.has(index) ? 1 : 0,
-                    transform: revealedMessages.has(index) ? "translateY(0)" : "translateY(8px)",
-                    transition: "opacity 0.4s ease-out, transform 0.4s ease-out",
-                    display: typingMessages.has(index) && !revealedMessages.has(index) ? "none" : "block",
-                  }}>
-                    {/* Text */}
-                    <p className="text-sm leading-relaxed text-white/50 mb-2">
-                      {message.text}
-                    </p>
-
-                    {/* Reactions */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {message.reactions.map((rx, rIdx) => (
-                        <span
-                          key={rIdx}
-                          data-rx
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs cursor-default transition-all duration-200 hover:scale-105"
-                          style={{
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.08)",
-                            opacity: 0,
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                            e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                          }}
-                        >
-                          <span>{rx.emoji}</span>
-                          <span className="font-mono text-[10px] text-white/35">
-                            {rx.count}
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Thread */}
-                    {message.thread && (
-                      <button
-                        className="mt-1.5 text-xs font-medium transition-colors duration-200"
-                        style={{ color: "rgba(96,165,250,0.6)" }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = "rgba(96,165,250,0.8)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = "rgba(96,165,250,0.6)";
-                        }}
-                      >
-                        {message.thread.replies} replies &middot; Last reply{" "}
-                        {message.thread.lastReply}
-                      </button>
-                    )}
-                  </div>
-                </div>
+                  Message sent! It&apos;ll appear after review.
+                </span>
               </div>
-            ))}
-
-            {/* Typing indicator */}
-            <div data-typing className="flex gap-3 items-center">
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-xs font-semibold select-none"
-                style={{
-                  backgroundColor: "rgba(251, 191, 36, 0.25)",
-                  color: "rgba(255, 255, 255, 0.7)",
-                }}
-              >
-                HN
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: "rgba(255,255,255,0.04)" }}
+                >
+                  <User size={14} className="text-white/20" />
+                </div>
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSendClick(); }}
+                  placeholder="Leave some kind words..."
+                  className="flex-1 bg-transparent text-sm text-white/50 placeholder-white/15 outline-none"
+                />
+                <button
+                  onClick={handleSendClick}
+                  disabled={!inputText.trim()}
+                  className="p-2 rounded-lg transition-all duration-200 disabled:opacity-20"
+                  style={{
+                    background: inputText.trim() ? "rgba(255,255,255,0.06)" : "transparent",
+                  }}
+                >
+                  <Send size={14} className="text-white/30" />
+                </button>
               </div>
-              <TypingDots />
-            </div>
+            )}
           </div>
+
+          {/* Profile form overlay */}
+          {showForm && (
+            <SubmitForm
+              messageText={inputText}
+              onSubmit={handleFormSubmit}
+              onCancel={() => setShowForm(false)}
+            />
+          )}
         </div>
       </div>
     </section>

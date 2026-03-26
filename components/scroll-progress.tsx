@@ -59,8 +59,30 @@ export function ScrollProgress() {
     };
   }, []);
 
+  const prevChapter = useRef(0);
+
   // Animate dots and labels on chapter change
   useEffect(() => {
+    // Celebrate the chapter we just left
+    if (activeChapter > prevChapter.current) {
+      const completedDot = dotRefs.current[prevChapter.current];
+      if (completedDot) {
+        gsap.to(completedDot, {
+          boxShadow: "0 0 8px 2px rgba(74,222,128,0.5)",
+          duration: 0.2,
+          ease: "power2.out",
+          onComplete: () => {
+            gsap.to(completedDot, {
+              boxShadow: "0 0 0px 0px rgba(74,222,128,0)",
+              duration: 0.6,
+              ease: "power2.out",
+            });
+          },
+        });
+      }
+    }
+    prevChapter.current = activeChapter;
+
     dotRefs.current.forEach((dot, i) => {
       if (!dot) return;
       const isActive = i === activeChapter;
@@ -72,8 +94,8 @@ export function ScrollProgress() {
         ease: "elastic.out(1, 0.6)",
       });
       gsap.to(dot, {
-        backgroundColor: isActive ? "#fff" : isPast ? "rgba(255,255,255,0.35)" : "transparent",
-        borderColor: isActive ? "rgba(255,255,255,0.8)" : isPast ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.1)",
+        backgroundColor: isActive ? "#fff" : isPast ? "rgba(255,255,255,0.5)" : "transparent",
+        borderColor: isActive ? "rgba(255,255,255,0.8)" : isPast ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.1)",
         duration: 0.3,
         ease: "power2.out",
       });
@@ -103,7 +125,7 @@ export function ScrollProgress() {
     <div ref={containerRef} className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-end gap-0">
       <div className="relative flex flex-col items-center">
         {/* Track */}
-        <div className="relative w-px h-48" style={{ background: "rgba(255,255,255,0.05)" }}>
+        <div className="relative w-px h-64" style={{ background: "rgba(255,255,255,0.05)" }}>
           <div
             ref={fillRef}
             className="absolute top-0 left-0 w-full h-full origin-top"
@@ -133,7 +155,7 @@ export function ScrollProgress() {
               <button
                 ref={(el) => { dotRefs.current[i] = el; }}
                 onClick={() => scrollTo(chapter.id, i)}
-                className="w-[5px] h-[5px] rounded-full cursor-pointer relative"
+                className="w-[7px] h-[7px] rounded-full cursor-pointer relative"
                 style={{
                   border: "1px solid rgba(255,255,255,0.1)",
                   backgroundColor: "transparent",

@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { projects, leads, toolCategories, tools } from "./schema";
+import { projects, leads, toolCategories, tools, testimonials } from "./schema";
 import { eq, asc, desc } from "drizzle-orm";
 import type { ProjectData } from "@/components/project-gallery";
 export type { ProjectData };
@@ -72,4 +72,21 @@ export async function getVisibleToolCategories(): Promise<ToolCategoryWithTools[
     console.error("Failed to fetch tool categories:", error);
     return [];
   }
+}
+
+export async function getVisibleTestimonials() {
+  try {
+    return await db
+      .select()
+      .from(testimonials)
+      .where(eq(testimonials.visible, true))
+      .orderBy(desc(testimonials.createdAt));
+  } catch (error) {
+    console.error("Failed to fetch testimonials:", error);
+    return [];
+  }
+}
+
+export async function getAllTestimonials() {
+  return db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
 }

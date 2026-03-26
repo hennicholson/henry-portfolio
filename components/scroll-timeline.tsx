@@ -111,6 +111,26 @@ export function ScrollTimeline() {
                 ease: "elastic.out(1, 0.6)",
               });
             }
+            // Quote word-by-word reveal
+            const quoteWords = el.querySelectorAll("[data-quote-word]");
+            const cursor = el.querySelector("[data-quote-cursor]");
+            if (cursor) {
+              gsap.to(cursor, { opacity: 1, duration: 0.1, delay: 0.7 });
+              gsap.to(cursor, { opacity: 0, duration: 0.15, repeat: -1, yoyo: true, delay: 0.7, repeatDelay: 0.3 });
+            }
+            quoteWords.forEach((w, wi) => {
+              gsap.to(w, {
+                opacity: 1,
+                duration: 0.08,
+                delay: 0.8 + wi * 0.06,
+                ease: "none",
+              });
+            });
+            // Hide cursor after quote finishes
+            if (cursor && quoteWords.length > 0) {
+              gsap.to(cursor, { opacity: 0, duration: 0.2, delay: 0.8 + quoteWords.length * 0.06 + 0.5, overwrite: true });
+            }
+
             // Annotation scribble in
             const ann = annotationRefs.current[i];
             if (ann) {
@@ -211,7 +231,12 @@ export function ScrollTimeline() {
                   className="text-lg md:text-xl text-white/25 italic"
                   style={{ fontFamily: "var(--font-caveat)" }}
                 >
-                  &ldquo;{m.quote}&rdquo;
+                  &ldquo;{m.quote.split(" ").map((word, wi) => (
+                    <span key={wi} data-quote-word className="inline-block mr-[0.3em]" style={{ opacity: 0 }}>
+                      {word}
+                    </span>
+                  ))}&rdquo;
+                  <span data-quote-cursor className="inline-block w-[2px] h-[1em] bg-white/30 align-middle ml-0.5" style={{ opacity: 0 }} />
                 </p>
 
                 {/* Margin annotation — scribbles in character by character */}

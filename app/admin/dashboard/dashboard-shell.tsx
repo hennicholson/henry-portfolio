@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { LeadsTable } from "./leads-table";
 import { ProjectsEditor } from "./projects-editor";
 import { ToolsEditor } from "./tools-editor";
+import { TestimonialsEditor } from "./testimonials-editor";
 
-const tabs = ["Leads", "Projects", "Tools"] as const;
+const tabs = ["Leads", "Projects", "Tools", "Testimonials"] as const;
 type Tab = (typeof tabs)[number];
 
 export function DashboardShell() {
@@ -69,6 +70,7 @@ export function DashboardShell() {
         {activeTab === "Leads" && <LeadsTable />}
         {activeTab === "Projects" && <ProjectsEditor />}
         {activeTab === "Tools" && <ToolsEditor />}
+        {activeTab === "Testimonials" && <TestimonialsEditor />}
       </div>
     </div>
   );

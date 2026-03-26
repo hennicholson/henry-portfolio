@@ -145,8 +145,20 @@ async function seed() {
 
 const seedToolCategories = [
   {
-    label: "Build",
+    label: "AI",
     sortOrder: 0,
+    tools: [
+      { name: "Claude", note: "Reasoning", logoUrl: "/logos/claude.svg", sortOrder: 0 },
+      { name: "GPT", note: "Generation", logoUrl: "/logos/gpt.svg", sortOrder: 1 },
+      { name: "Gemini", note: "Multimodal", logoUrl: "/logos/gemini.svg", sortOrder: 2 },
+      { name: "Kling", note: "Video", logoUrl: "/logos/kling.svg", sortOrder: 3 },
+      { name: "Seedance", note: "Video", logoUrl: "/logos/seedance.svg", sortOrder: 4 },
+      { name: "Runway", note: "Video", logoUrl: "/logos/runway.svg", sortOrder: 5 },
+    ],
+  },
+  {
+    label: "Build",
+    sortOrder: 1,
     tools: [
       { name: "React", note: "UI", logoUrl: "/logos/react.svg", sortOrder: 0 },
       { name: "Next.js", note: "Framework", logoUrl: "/logos/nextjs.svg", sortOrder: 1 },
@@ -157,38 +169,27 @@ const seedToolCategories = [
     ],
   },
   {
-    label: "AI",
-    sortOrder: 1,
-    tools: [
-      { name: "Claude", note: "Reasoning", logoUrl: "/logos/claude.svg", sortOrder: 0 },
-      { name: "GPT", note: "Generation", logoUrl: "/logos/gpt.svg", sortOrder: 1 },
-      { name: "Midjourney", note: "Imagery", logoUrl: "/logos/midjourney.svg", sortOrder: 2 },
-      { name: "Runway", note: "Video", logoUrl: "/logos/runway.svg", sortOrder: 3 },
-      { name: "ElevenLabs", note: "Voice", logoUrl: "/logos/elevenlabs.svg", sortOrder: 4 },
-      { name: "Cursor", note: "Code", logoUrl: "/logos/cursor.svg", sortOrder: 5 },
-    ],
-  },
-  {
     label: "Ship",
     sortOrder: 2,
     tools: [
       { name: "Vercel", note: "Hosting", logoUrl: "/logos/vercel.svg", sortOrder: 0 },
       { name: "Netlify", note: "Edge", logoUrl: "/logos/netlify.svg", sortOrder: 1 },
       { name: "Supabase", note: "Database", logoUrl: "/logos/supabase.svg", sortOrder: 2 },
-      { name: "Whop", note: "Payments", logoUrl: "/logos/whop.svg", sortOrder: 3 },
-      { name: "GitHub", note: "Source", logoUrl: "/logos/github.svg", sortOrder: 4 },
-      { name: "Stripe", note: "Billing", logoUrl: "/logos/stripe.svg", sortOrder: 5 },
+      { name: "Neon", note: "Database", logoUrl: "/logos/neon.svg", sortOrder: 3 },
+      { name: "Whop", note: "Payments", logoUrl: "/logos/whop.svg", sortOrder: 4 },
+      { name: "GitHub", note: "Source", logoUrl: "/logos/github.svg", sortOrder: 5 },
     ],
   },
   {
     label: "Create",
     sortOrder: 3,
     tools: [
-      { name: "Figma", note: "Design", logoUrl: "/logos/figma.svg", sortOrder: 0 },
-      { name: "After Effects", note: "Motion", logoUrl: "/logos/aftereffects.svg", sortOrder: 1 },
-      { name: "Premiere", note: "Edit", logoUrl: "/logos/premiere.svg", sortOrder: 2 },
-      { name: "DaVinci", note: "Grade", logoUrl: "/logos/davinci.svg", sortOrder: 3 },
-      { name: "Canva", note: "Quick", logoUrl: "/logos/canva.svg", sortOrder: 4 },
+      { name: "Photoshop", note: "Design", logoUrl: "/logos/photoshop.svg", sortOrder: 0 },
+      { name: "Figma", note: "Design", logoUrl: "/logos/figma.svg", sortOrder: 1 },
+      { name: "Remotion", note: "Motion Graphics", logoUrl: "/logos/remotion.svg", sortOrder: 2 },
+      { name: "CapCut", note: "Edit", logoUrl: "/logos/capcut.svg", sortOrder: 3 },
+      { name: "CapCut Studio", note: "Studio", logoUrl: "/logos/capcut.svg", sortOrder: 4 },
+      { name: "Canva", note: "Quick", logoUrl: "/logos/canva.svg", sortOrder: 5 },
     ],
   },
 ];

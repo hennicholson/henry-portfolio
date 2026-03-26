@@ -416,9 +416,10 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
       {project.thumbnail && (
         <div className="relative overflow-hidden" style={{ minHeight: "120px", flex: "1 1 55%" }}>
           <img
+            data-card-thumb
             src={project.thumbnail}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover object-top transform-gpu transition-transform duration-700 ease-out group-hover:scale-[1.04] group-hover:-translate-y-1"
+            className="absolute inset-0 w-full h-full object-cover object-top transform-gpu transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             loading="lazy"
           />
           {/* Gradient overlay: transparent top → card bg bottom */}
@@ -571,6 +572,16 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
               boxShadow: "0 -20px 80px -20px rgba(255,255,255,0.03) inset",
               transition: "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s, box-shadow 0.4s",
             }}
+            onMouseMove={(e) => {
+              const el = e.currentTarget as HTMLElement;
+              const rect = el.getBoundingClientRect();
+              const dx = ((e.clientX - rect.left) / rect.width - 0.5) * -8;
+              const dy = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
+              const thumb = el.querySelector("[data-card-thumb]") as HTMLElement;
+              if (thumb) {
+                thumb.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
+              }
+            }}
             onMouseEnter={(e) => {
               const el = e.currentTarget as HTMLElement;
               el.style.borderColor = "rgba(255,255,255,0.14)";
@@ -580,6 +591,10 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
               const el = e.currentTarget as HTMLElement;
               el.style.borderColor = "rgba(255,255,255,0.06)";
               el.style.boxShadow = "0 -20px 80px -20px rgba(255,255,255,0.03) inset";
+              const thumb = el.querySelector("[data-card-thumb]") as HTMLElement;
+              if (thumb) {
+                thumb.style.transform = "";
+              }
             }}
           >
             <div

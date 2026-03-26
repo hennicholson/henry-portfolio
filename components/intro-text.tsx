@@ -73,12 +73,32 @@ export function IntroText() {
         gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
       });
 
+      let lastSpotlightIdx = -1;
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top 60%",
           end: "bottom 40%",
           scrub: 0.3,
+          onUpdate: () => {
+            // Find the word currently transitioning (opacity between 0.2-0.9)
+            let spotIdx = -1;
+            wordRefs.current.forEach((el, i) => {
+              if (!el) return;
+              const op = parseFloat(el.style.opacity || gsap.getProperty(el, "opacity") as string);
+              if (op > 0.2 && op < 0.9) spotIdx = i;
+            });
+            if (spotIdx !== lastSpotlightIdx) {
+              if (lastSpotlightIdx >= 0 && wordRefs.current[lastSpotlightIdx]) {
+                wordRefs.current[lastSpotlightIdx]!.style.textShadow = "none";
+              }
+              if (spotIdx >= 0 && wordRefs.current[spotIdx]) {
+                wordRefs.current[spotIdx]!.style.textShadow = "0 0 20px rgba(255,255,255,0.15)";
+              }
+              lastSpotlightIdx = spotIdx;
+            }
+          },
         },
       });
 

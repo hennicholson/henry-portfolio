@@ -8,9 +8,32 @@ import { Twitter, Linkedin, Mail, ArrowUpRight } from "lucide-react";
 gsap.registerPlugin(ScrollTrigger);
 
 const socials = [
-  { label: "Twitter / X", icon: Twitter, href: "https://x.com/henryfromskinny" },
-  { label: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/in/henrymnicholson/" },
-  { label: "Email", icon: Mail, href: "mailto:henrynicholson@sandiego.edu" },
+  {
+    label: "Twitter / X", icon: Twitter, href: "https://x.com/henryfromskinny",
+    hoverAnim: (el: HTMLElement) => {
+      gsap.to(el, { rotation: -15, duration: 0.15, ease: "power2.out",
+        onComplete: () => gsap.to(el, { rotation: 15, duration: 0.1, ease: "power2.out",
+          onComplete: () => gsap.to(el, { rotation: 0, duration: 0.2, ease: "elastic.out(1,0.5)" }),
+        }),
+      });
+    },
+  },
+  {
+    label: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/in/henrymnicholson/",
+    hoverAnim: (el: HTMLElement) => {
+      gsap.to(el, { y: -3, duration: 0.2, ease: "power2.out",
+        onComplete: () => gsap.to(el, { y: 0, duration: 0.4, ease: "bounce.out" }),
+      });
+    },
+  },
+  {
+    label: "Email", icon: Mail, href: "mailto:henrynicholson@sandiego.edu",
+    hoverAnim: (el: HTMLElement) => {
+      gsap.to(el, { scaleY: 1.2, scaleX: 0.9, duration: 0.15, ease: "power2.out",
+        onComplete: () => gsap.to(el, { scaleY: 1, scaleX: 1, duration: 0.3, ease: "elastic.out(1,0.4)" }),
+      });
+    },
+  },
 ];
 
 export function ConnectSection() {
@@ -102,7 +125,7 @@ export function ConnectSection() {
         </div>
 
         <div className="flex justify-center gap-2.5 mb-12" data-animate>
-          {socials.map(({ label, icon: Icon, href }) => (
+          {socials.map(({ label, icon: Icon, href, hoverAnim }) => (
             <a
               key={label}
               href={href}
@@ -111,8 +134,12 @@ export function ConnectSection() {
               aria-label={label}
               data-magnetic
               className="group flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+              onMouseEnter={(e) => {
+                const icon = e.currentTarget.querySelector("[data-social-icon]") as HTMLElement;
+                if (icon) hoverAnim(icon);
+              }}
             >
-              <Icon size={15} className="text-white/30 group-hover:text-white/60 transition-colors duration-300" />
+              <Icon data-social-icon size={15} className="text-white/30 group-hover:text-white/60 transition-colors duration-300" />
               <span className="text-[10px] text-white/30 group-hover:text-white/50 transition-colors duration-300 hidden md:inline font-mono tracking-wider">
                 {label}
               </span>

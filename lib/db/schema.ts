@@ -70,3 +70,18 @@ export type ToolCategory = typeof toolCategories.$inferSelect;
 export type NewToolCategory = typeof toolCategories.$inferInsert;
 export type Tool = typeof tools.$inferSelect;
 export type NewTool = typeof tools.$inferInsert;
+
+export const testimonials = pgTable("testimonials", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  text: text("text").notNull(),
+  avatarUrl: text("avatar_url"),
+  workplace: text("workplace"),
+  color: text("color").notNull().default("rgba(59,130,246,0.25)"),
+  visible: boolean("visible").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type Testimonial = typeof testimonials.$inferSelect;
+export type NewTestimonial = typeof testimonials.$inferInsert;

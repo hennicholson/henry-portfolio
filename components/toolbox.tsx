@@ -20,6 +20,17 @@ interface CategoryData {
 
 const fallbackCategories: CategoryData[] = [
   {
+    label: "AI",
+    tools: [
+      { name: "Claude", note: "Reasoning", logoUrl: "/logos/claude.svg" },
+      { name: "GPT", note: "Generation", logoUrl: "/logos/gpt.svg" },
+      { name: "Gemini", note: "Multimodal", logoUrl: "/logos/gemini.svg" },
+      { name: "Kling", note: "Video", logoUrl: "/logos/kling.svg" },
+      { name: "Seedance", note: "Video", logoUrl: "/logos/seedance.svg" },
+      { name: "Runway", note: "Video", logoUrl: "/logos/runway.svg" },
+    ],
+  },
+  {
     label: "Build",
     tools: [
       { name: "React", note: "UI", logoUrl: "/logos/react.svg" },
@@ -31,34 +42,24 @@ const fallbackCategories: CategoryData[] = [
     ],
   },
   {
-    label: "AI",
-    tools: [
-      { name: "Claude", note: "Reasoning", logoUrl: "/logos/claude.svg" },
-      { name: "GPT", note: "Generation", logoUrl: "/logos/gpt.svg" },
-      { name: "Midjourney", note: "Imagery", logoUrl: "/logos/midjourney.svg" },
-      { name: "Runway", note: "Video", logoUrl: "/logos/runway.svg" },
-      { name: "ElevenLabs", note: "Voice", logoUrl: "/logos/elevenlabs.svg" },
-      { name: "Cursor", note: "Code", logoUrl: "/logos/cursor.svg" },
-    ],
-  },
-  {
     label: "Ship",
     tools: [
       { name: "Vercel", note: "Hosting", logoUrl: "/logos/vercel.svg" },
       { name: "Netlify", note: "Edge", logoUrl: "/logos/netlify.svg" },
       { name: "Supabase", note: "Database", logoUrl: "/logos/supabase.svg" },
+      { name: "Neon", note: "Database", logoUrl: "/logos/neon.svg" },
       { name: "Whop", note: "Payments", logoUrl: "/logos/whop.svg" },
       { name: "GitHub", note: "Source", logoUrl: "/logos/github.svg" },
-      { name: "Stripe", note: "Billing", logoUrl: "/logos/stripe.svg" },
     ],
   },
   {
     label: "Create",
     tools: [
+      { name: "Photoshop", note: "Design", logoUrl: "/logos/photoshop.svg" },
       { name: "Figma", note: "Design", logoUrl: "/logos/figma.svg" },
-      { name: "After Effects", note: "Motion", logoUrl: "/logos/aftereffects.svg" },
-      { name: "Premiere", note: "Edit", logoUrl: "/logos/premiere.svg" },
-      { name: "DaVinci", note: "Grade", logoUrl: "/logos/davinci.svg" },
+      { name: "Remotion", note: "Motion Graphics", logoUrl: "/logos/remotion.svg" },
+      { name: "CapCut", note: "Edit", logoUrl: "/logos/capcut.svg" },
+      { name: "CapCut Studio", note: "Studio", logoUrl: "/logos/capcut.svg" },
       { name: "Canva", note: "Quick", logoUrl: "/logos/canva.svg" },
     ],
   },
@@ -317,10 +318,30 @@ export function Toolbox({ categories }: { categories?: CategoryData[] }) {
         duration: 0.9,
         ease: "power3.out",
         onComplete: () => {
-          // Auto-open first drawer after entrance
           setOpenDrawers(new Set([0]));
         },
       });
+
+      // Post-it note
+      const note = sectionRef.current!.querySelector("[data-tb-note]");
+      if (note) {
+        gsap.set(note, { opacity: 0, x: 50, rotation: 8, scale: 0.8 });
+        ScrollTrigger.create({
+          trigger: note,
+          start: "top 80%",
+          once: true,
+          onEnter: () => {
+            gsap.to(note, {
+              opacity: 1, x: 0, rotation: 3, scale: 1,
+              duration: 0.7, ease: "back.out(1.6)", delay: 0.5,
+            });
+            gsap.to(note, {
+              opacity: 0, x: 30, rotation: 6, scale: 0.9,
+              duration: 0.5, ease: "power2.in", delay: 6.5,
+            });
+          },
+        });
+      }
 
       // Stagger drawer entrances
       const drawers = sectionRef.current!.querySelectorAll("[data-drawer]");
@@ -379,13 +400,49 @@ export function Toolbox({ categories }: { categories?: CategoryData[] }) {
   return (
     <section ref={sectionRef} className="relative py-16 md:py-24" data-section="stack">
       {/* Section header */}
-      <div data-tb-header className="w-[90vw] max-w-3xl mx-auto px-6 mb-10 text-center">
+      <div data-tb-header className="w-[90vw] max-w-3xl mx-auto px-6 mb-10 text-center relative">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
           The Toolbox
         </h2>
         <p className="mt-3 text-white/20 text-sm md:text-base font-mono tracking-wide">
           Open the drawers
         </p>
+
+        {/* Post-it note */}
+        <div
+          data-tb-note
+          className="hidden lg:block absolute -right-4 xl:right-0 top-0 pointer-events-none select-none"
+          style={{ opacity: 0 }}
+        >
+          <div
+            className="relative px-4 py-3 rounded-sm"
+            style={{
+              background: "rgba(255, 235, 120, 0.08)",
+              border: "1px solid rgba(255, 235, 120, 0.12)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,235,120,0.05) inset",
+              transform: "rotate(3deg)",
+              maxWidth: "160px",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "var(--font-caveat), cursive",
+                color: "rgba(255, 235, 120, 0.55)",
+                fontSize: "16px",
+                lineHeight: "1.4",
+              }}
+            >
+              I love claude :)
+            </p>
+            <div
+              className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-2.5 rounded-sm"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* 3D Toolbox */}
