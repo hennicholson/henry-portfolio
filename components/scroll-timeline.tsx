@@ -169,8 +169,33 @@ export function ScrollTimeline() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-14 md:py-20" data-section="journey">
-      <div ref={headerRef} className="w-[90vw] max-w-5xl mx-auto px-6 mb-10 text-center">
+    <section ref={sectionRef} className="relative pt-0 pb-14 md:pb-20 overflow-visible" data-section="journey">
+      <style jsx global>{`
+        @keyframes journey-breathe {
+          0%, 100% { opacity: 0.06; }
+          50% { opacity: 0.14; }
+        }
+      `}</style>
+      {/* Background video — extends upward to cover section transition above */}
+      <div className="absolute -top-40 left-0 right-0 -bottom-40 overflow-hidden pointer-events-none"
+        style={{
+          maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+        }}
+      >
+        <video
+          src="/journey-bg.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ animation: "journey-breathe 8s ease-in-out infinite" }}
+        />
+        <div className="absolute inset-0 bg-[#050508]/70" />
+      </div>
+
+      <div ref={headerRef} className="relative w-[90vw] max-w-5xl mx-auto px-6 mb-10 text-center">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
           The Journey
         </h2>
@@ -179,7 +204,7 @@ export function ScrollTimeline() {
         </p>
       </div>
 
-      <div className="w-[90vw] max-w-5xl mx-auto px-6">
+      <div className="relative w-[90vw] max-w-5xl mx-auto px-6">
         <div className="relative">
           <div
             ref={lineTrackRef}

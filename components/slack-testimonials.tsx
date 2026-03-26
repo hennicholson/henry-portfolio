@@ -276,6 +276,16 @@ export default function SlackTestimonials({
   return (
     <section ref={sectionRef} data-section="testimonials" className="py-14 md:py-20">
       <div className="w-[90vw] max-w-5xl mx-auto px-6">
+        {/* Section header */}
+        <div className="mb-10 text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+            My Take on Testimonials
+          </h2>
+          <p className="mt-3 text-white/25 text-sm md:text-base max-w-lg mx-auto">
+            Real words from people I&apos;ve worked with. Drop a message if you&apos;ve got something to say.
+          </p>
+        </div>
+
         <div
           data-board
           className="relative rounded-2xl overflow-hidden"
