@@ -170,8 +170,9 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
   }, [status, controls]);
 
   // --- Client tools ---
-  useConversationClientTool("navigate_to_section", (params: { section: string }) => {
-    const target = document.querySelector(`[data-section="${params.section}"]`);
+  useConversationClientTool("navigate_to_section", (params: Record<string, unknown>) => {
+    const section = params.section as string;
+    const target = document.querySelector(`[data-section="${section}"]`);
     if (target) {
       gsap.to(window, {
         scrollTo: { y: target, offsetY: 80 },
@@ -179,18 +180,19 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
         ease: "power3.inOut",
       });
     }
-    return `Navigated to ${params.section}`;
+    return `Navigated to ${section}`;
   });
 
-  useConversationClientTool("open_project", (params: { slug: string }) => {
+  useConversationClientTool("open_project", (params: Record<string, unknown>) => {
+    const slug = params.slug as string;
     const card = document.querySelector(
-      `[data-project-id="${params.slug}"]`
+      `[data-project-id="${slug}"]`
     ) as HTMLElement | null;
     if (card) {
       card.click();
-      return `Opened project ${params.slug}`;
+      return `Opened project ${slug}`;
     }
-    return `Project ${params.slug} not found`;
+    return `Project ${slug} not found`;
   });
 
   // Track lead state per conversation to prevent duplicate writes
@@ -202,9 +204,9 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
 
   useConversationClientTool(
     "capture_lead",
-    async (params: { name?: string; email?: string }) => {
-      const newName = params.name || null;
-      const newEmail = params.email || null;
+    async (params: Record<string, unknown>) => {
+      const newName = (params.name as string) || null;
+      const newEmail = (params.email as string) || null;
 
       if (!newName && !newEmail) {
         return "No info provided. Continue the conversation.";
