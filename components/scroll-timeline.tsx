@@ -192,7 +192,7 @@ export function ScrollTimeline() {
           className="absolute inset-0 w-full h-full object-cover"
           style={{ animation: "journey-breathe 8s ease-in-out infinite" }}
         />
-        <div className="absolute inset-0 bg-[#050508]/70" />
+        <div className="absolute inset-0 bg-[#050508]/35" />
       </div>
 
       <div ref={headerRef} className="relative w-[90vw] max-w-5xl mx-auto px-6 mb-10 text-center">

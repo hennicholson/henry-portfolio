@@ -21,7 +21,11 @@ const gapMessages = [
 export function SectionTransition({ variant = "subtle" }: SectionTransitionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const msgRef = useRef<HTMLSpanElement>(null);
-  const [message] = useState(() => gapMessages[Math.floor(Math.random() * gapMessages.length)]);
+  const [message, setMessage] = useState(gapMessages[0]);
+
+  useEffect(() => {
+    setMessage(gapMessages[Math.floor(Math.random() * gapMessages.length)]);
+  }, []);
   const shown = useRef(false);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 

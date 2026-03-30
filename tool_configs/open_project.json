@@ -1,0 +1,30 @@
+{
+    "type": "client",
+    "name": "open_project",
+    "description": "Open a specific project card on the portfolio page. Use this when the visitor asks to see or learn more about a particular project.",
+    "response_timeout_secs": 20,
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false,
+    "assignments": [],
+    "tool_call_sound_behavior": "auto",
+    "tool_error_handling_mode": "auto",
+    "parameters": {
+        "type": "object",
+        "required": ["slug"],
+        "description": "",
+        "properties": {
+            "slug": {
+                "type": "string",
+                "description": "The project slug/identifier to open",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "constant_value": ""
+            }
+        }
+    },
+    "expects_response": true,
+    "dynamic_variables": {
+        "dynamicVariablePlaceholders": {}
+    },
+    "execution_mode": "immediate"
+}

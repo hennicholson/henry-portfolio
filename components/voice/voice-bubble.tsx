@@ -29,37 +29,46 @@ function MiniWaveform({ speaking }: { speaking: boolean }) {
 export function VoiceBubble() {
   const { status, isSpeaking, startConversation, endConversation } = useVoice();
   const bubbleRef = useRef<HTMLButtonElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [enteredOnce, setEnteredOnce] = useState(false);
   const [hovering, setHovering] = useState(false);
 
-  // Delayed entrance
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(true);
-      if (bubbleRef.current) {
-        gsap.fromTo(
-          bubbleRef.current,
-          { scale: 0.6, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }
-        );
-      }
-    }, 3000);
+  const isActive = status === "connected";
+  const isConnecting = status === "connecting";
+  const isDisconnected = status === "disconnected";
 
-    return () => clearTimeout(timer);
-  }, []);
+  // Show bubble: either after 3s idle delay, or immediately when connecting/connected
+  useEffect(() => {
+    if (isActive || isConnecting) {
+      setEnteredOnce(true);
+      return;
+    }
+
+    if (!enteredOnce) {
+      const timer = setTimeout(() => setEnteredOnce(true), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive, isConnecting, enteredOnce]);
+
+  // Animate in when first becoming visible
+  useEffect(() => {
+    if (enteredOnce && bubbleRef.current) {
+      gsap.fromTo(
+        bubbleRef.current,
+        { scale: 0.6, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }
+      );
+    }
+  }, [enteredOnce]);
 
   const handleClick = () => {
-    if (status === "connected") {
+    if (isActive) {
       endConversation();
-    } else if (status === "disconnected") {
+    } else if (isDisconnected) {
       startConversation();
     }
   };
 
-  const isActive = status === "connected";
-  const isConnecting = status === "connecting";
-
-  if (!visible) return null;
+  if (!enteredOnce) return null;
 
   return (
     <>
@@ -84,11 +93,15 @@ export function VoiceBubble() {
           width: isActive ? 52 : 56,
           height: isActive ? 52 : 56,
           background: isActive
-            ? hovering ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.1)"
+            ? hovering
+              ? "rgba(239,68,68,0.2)"
+              : "rgba(255,255,255,0.1)"
             : "rgba(255,255,255,0.06)",
           border: `2px solid ${
             isActive
-              ? hovering ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.2)"
+              ? hovering
+                ? "rgba(239,68,68,0.4)"
+                : "rgba(255,255,255,0.2)"
               : "rgba(255,255,255,0.08)"
           }`,
           boxShadow: isActive
@@ -123,7 +136,10 @@ export function VoiceBubble() {
         {isConnecting ? (
           <div
             className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "transparent" }}
+            style={{
+              borderColor: "rgba(255,255,255,0.3)",
+              borderTopColor: "transparent",
+            }}
           />
         ) : isActive ? (
           hovering ? (

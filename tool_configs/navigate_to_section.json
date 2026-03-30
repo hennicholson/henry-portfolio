@@ -1,0 +1,30 @@
+{
+    "type": "client",
+    "name": "navigate_to_section",
+    "description": "Scroll the portfolio page to a specific section. Use this when the visitor asks to see a particular part of the site like projects, toolbox, journey, or footer/contact.",
+    "response_timeout_secs": 20,
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false,
+    "assignments": [],
+    "tool_call_sound_behavior": "auto",
+    "tool_error_handling_mode": "auto",
+    "parameters": {
+        "type": "object",
+        "required": ["section"],
+        "description": "",
+        "properties": {
+            "section": {
+                "type": "string",
+                "description": "The section to navigate to. Valid values: hero, journey, stack, projects, testimonials, footer",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "constant_value": ""
+            }
+        }
+    },
+    "expects_response": true,
+    "dynamic_variables": {
+        "dynamicVariablePlaceholders": {}
+    },
+    "execution_mode": "immediate"
+}

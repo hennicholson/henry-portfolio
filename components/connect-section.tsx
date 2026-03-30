@@ -39,6 +39,7 @@ const socials = [
 export function ConnectSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const secretRef = useRef<HTMLDivElement>(null);
+  const spotlightRef = useRef<HTMLDivElement>(null);
   const [secretVisible, setSecretVisible] = useState(false);
 
   useEffect(() => {
@@ -58,10 +59,50 @@ export function ConnectSection() {
       });
     }, sectionRef);
 
-    // Secret footer message
+    return () => ctx.revert();
+  }, []);
+
+  // Trailing spotlight
+  useEffect(() => {
+    const section = sectionRef.current;
+    const spot = spotlightRef.current;
+    if (!section || !spot) return;
+
+    const xTo = gsap.quickTo(spot, "x", { duration: 0.4, ease: "power2.out" });
+    const yTo = gsap.quickTo(spot, "y", { duration: 0.4, ease: "power2.out" });
+
+    const handleMove = (e: MouseEvent) => {
+      const rect = section.getBoundingClientRect();
+      xTo(e.clientX - rect.left);
+      yTo(e.clientY - rect.top);
+    };
+
+    const handleEnter = () => {
+      gsap.to(spot, { opacity: 1, duration: 0.4, ease: "power2.out" });
+    };
+
+    const handleLeave = () => {
+      gsap.to(spot, { opacity: 0, duration: 0.3, ease: "power2.out" });
+    };
+
+    section.addEventListener("mousemove", handleMove);
+    section.addEventListener("mouseenter", handleEnter);
+    section.addEventListener("mouseleave", handleLeave);
+    return () => {
+      section.removeEventListener("mousemove", handleMove);
+      section.removeEventListener("mouseenter", handleEnter);
+      section.removeEventListener("mouseleave", handleLeave);
+    };
+  }, []);
+
+  // Secret footer message — separate effect so it doesn't reset the entrance animation
+  useEffect(() => {
+    let revealed = false;
     const handleScroll = () => {
+      if (revealed) return;
       const atBottom = window.scrollY + window.innerHeight >= document.body.scrollHeight - 20;
-      if (atBottom && !secretVisible) {
+      if (atBottom) {
+        revealed = true;
         setSecretVisible(true);
         if (secretRef.current) {
           gsap.fromTo(secretRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" });
@@ -69,30 +110,36 @@ export function ConnectSection() {
       }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      ctx.revert();
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [secretVisible]);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <footer ref={sectionRef} className="relative py-12 md:py-16" data-section="footer">
-      <div className="w-[90vw] max-w-3xl mx-auto px-6">
+    <footer ref={sectionRef} className="relative py-12 md:py-16 overflow-hidden" data-section="footer">
+      {/* Trailing spotlight */}
+      <div
+        ref={spotlightRef}
+        className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 opacity-0"
+        style={{
+          width: 300,
+          height: 300,
+          background: "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)",
+          willChange: "transform",
+        }}
+      />
+      <div className="w-[90vw] max-w-3xl mx-auto px-6 relative">
         <div className="text-center mb-10" data-animate>
           <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
             What&apos;s Next?
           </h2>
-          <p className="mt-3 text-white/25 text-base max-w-md mx-auto leading-relaxed">
+          <p className="mt-3 text-white/40 text-base max-w-md mx-auto leading-relaxed">
             Always building, always learning.
           </p>
           <div
             className="mt-4 inline-block relative"
-            data-animate
             style={{
               fontFamily: "var(--font-caveat)",
               fontSize: "16px",
-              color: "rgba(255,255,255,0.18)",
+              color: "rgba(255,255,255,0.30)",
               transform: "rotate(-2deg)",
             }}
           >

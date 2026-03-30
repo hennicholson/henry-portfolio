@@ -1,0 +1,37 @@
+{
+    "type": "client",
+    "name": "capture_lead",
+    "description": "Use this tool to save a visitor's contact information when they share their name or email during the conversation. Call this tool as soon as you have collected at least a name or email. You can call it again if you get additional info later.",
+    "response_timeout_secs": 20,
+    "disable_interruptions": false,
+    "force_pre_tool_speech": false,
+    "assignments": [],
+    "tool_call_sound_behavior": "auto",
+    "tool_error_handling_mode": "auto",
+    "parameters": {
+        "type": "object",
+        "required": [],
+        "description": "",
+        "properties": {
+            "name": {
+                "type": "string",
+                "description": "The visitor's name",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "constant_value": ""
+            },
+            "email": {
+                "type": "string",
+                "description": "The visitor's email address",
+                "is_system_provided": false,
+                "dynamic_variable": "",
+                "constant_value": ""
+            }
+        }
+    },
+    "expects_response": true,
+    "dynamic_variables": {
+        "dynamicVariablePlaceholders": {}
+    },
+    "execution_mode": "immediate"
+}

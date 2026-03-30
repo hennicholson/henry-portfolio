@@ -1,0 +1,19 @@
+{
+    "tools": [
+        {
+            "type": "client",
+            "config": "tool_configs/capture_lead.json",
+            "id": "tool_8401kn02gnjtftyr9xa153ysfqvs"
+        },
+        {
+            "type": "client",
+            "config": "tool_configs/navigate_to_section.json",
+            "id": "tool_7301kn035jwcftja5brkee7rj628"
+        },
+        {
+            "type": "client",
+            "config": "tool_configs/open_project.json",
+            "id": "tool_5501kn035k1be4yt1rtpz7eenr5s"
+        }
+    ]
+}

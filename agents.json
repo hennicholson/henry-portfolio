@@ -1,0 +1,10 @@
+{
+    "agents": [
+        {
+            "config": "agent_configs/Linguini-Pepicini.json",
+            "id": "agent_7501kkwx9t43e4fsv9j7bmntdy5d",
+            "version_id": "agtvrsn_7201kn04f8v5f32sszas3pt7v6y0",
+            "branch_id": "agtbrch_9301kkwx9vw6fktt4b5xvm75enyz"
+        }
+    ]
+}
