@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronDown } from "lucide-react";
@@ -14,8 +14,12 @@ export function ParallaxHero() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const ghostH1Ref = useRef<HTMLHeadingElement>(null);
   const ghostSubtitleRef = useRef<HTMLParagraphElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const introH1Ref = useRef<HTMLHeadingElement>(null);
+  const introSubRef = useRef<HTMLParagraphElement>(null);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scattered = useRef(false);
+  const [showOverlay, setShowOverlay] = useState(true);
 
   const handleNameHold = useCallback(() => {
     holdTimer.current = setTimeout(() => {
@@ -59,45 +63,92 @@ export function ParallaxHero() {
     );
     if (!triggerElement) return;
 
-    // Hero entrance
-    const entranceTargets = [
-      { el: h1Ref.current, y: 30, duration: 1, delay: 0.2 },
-      { el: subtitleRef.current, y: 20, duration: 0.8, delay: 0.5 },
-    ];
+    const skipIntro = sessionStorage.getItem("intro-played") === "1"
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    entranceTargets.forEach(({ el, y, duration, delay }) => {
-      if (el) {
-        gsap.fromTo(
-          el,
-          { opacity: 0, y },
-          { opacity: 1, y: 0, duration, ease: "power2.out", delay }
+    if (skipIntro) {
+      // Show everything immediately
+      [h1Ref.current, subtitleRef.current, ghostH1Ref.current, ghostSubtitleRef.current].forEach((el) => {
+        if (el) gsap.set(el, { opacity: 1 });
+      });
+      if (scrollRef.current) gsap.set(scrollRef.current, { opacity: 1 });
+      setShowOverlay(false);
+    } else {
+      // Lock scroll during intro
+      document.body.style.overflow = "hidden";
+
+      // Hide the real hero text — the overlay copy will be visible
+      [h1Ref.current, subtitleRef.current, ghostH1Ref.current, ghostSubtitleRef.current].forEach((el) => {
+        if (el) gsap.set(el, { opacity: 0 });
+      });
+
+      const introTL = gsap.timeline({
+        delay: 0.2,
+        onComplete: () => {
+          sessionStorage.setItem("intro-played", "1");
+          document.body.style.overflow = "";
+        },
+      });
+
+      // Phase 1: Fade in the intro text on the overlay (starts big & centered)
+      if (introH1Ref.current) {
+        introTL.fromTo(introH1Ref.current,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+          0
         );
       }
-    });
-
-    // Ghost layers
-    const ghostTargets = [
-      { el: ghostH1Ref.current, duration: 1, delay: 0.2 },
-      { el: ghostSubtitleRef.current, duration: 0.8, delay: 0.5 },
-    ];
-
-    ghostTargets.forEach(({ el, duration, delay }) => {
-      if (el) {
-        gsap.fromTo(
-          el,
-          { opacity: 0 },
-          { opacity: 1, duration, ease: "power2.out", delay }
+      if (introSubRef.current) {
+        introTL.fromTo(introSubRef.current,
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+          0.3
         );
       }
-    });
 
-    // Scroll indicator entrance
-    if (scrollRef.current) {
-      gsap.fromTo(
-        scrollRef.current,
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 1.0 }
-      );
+      // Phase 2: Hold for a beat, then zoom out
+      // Calculate scale ratio: intro text is scale(1.3), hero text is scale(1)
+      // The overlay text will scale down + the overlay bg fades out to reveal the hero behind it
+      introTL.to(overlayRef.current, {
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.inOut",
+      }, 1.4);
+
+      // Scale & move the intro text container to match hero position
+      const introTextContainer = overlayRef.current?.querySelector("[data-intro-text]");
+      if (introTextContainer) {
+        introTL.to(introTextContainer, {
+          scale: 1 / 1.3, // zoom out from 1.3x to 1x
+          duration: 0.8,
+          ease: "power2.inOut",
+        }, 1.4);
+      }
+
+      // Simultaneously reveal the real hero text
+      introTL.to([h1Ref.current, subtitleRef.current].filter(Boolean), {
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      }, 1.8);
+
+      introTL.to([ghostH1Ref.current, ghostSubtitleRef.current].filter(Boolean), {
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out",
+      }, 1.8);
+
+      // Remove overlay from DOM
+      introTL.call(() => setShowOverlay(false), [], 2.2);
+
+      // Scroll indicator fades in
+      if (scrollRef.current) {
+        introTL.fromTo(scrollRef.current,
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+          2.0
+        );
+      }
     }
 
     const tl = gsap.timeline({
@@ -190,6 +241,45 @@ export function ParallaxHero() {
 
   return (
     <div ref={parallaxRef}>
+      {/* Intro overlay — text pops up big, then zooms out into the hero */}
+      {showOverlay && (
+        <div
+          ref={overlayRef}
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{
+            backgroundColor: "#050508",
+            animation: "intro-overlay-fallback 0.6s ease-out 5s forwards",
+          }}
+        >
+          <div data-intro-text className="flex flex-col items-center" style={{ transform: "scale(1.3)" }}>
+            <h1
+              ref={introH1Ref}
+              className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9] select-none"
+              style={{
+                textShadow: "0 2px 20px rgba(0, 0, 0, 0.6)",
+                opacity: 0,
+              }}
+            >
+              Henry<br />Nicholson
+            </h1>
+            <p
+              ref={introSubRef}
+              className="mt-6 text-sm sm:text-base md:text-lg text-white/55 font-light tracking-[0.35em] uppercase"
+              style={{
+                textShadow: "0 2px 10px rgba(0, 0, 0, 0.6)",
+                opacity: 0,
+              }}
+            >
+              Builder & Entrepreneur
+            </p>
+          </div>
+        </div>
+      )}
+      <style jsx global>{`
+        @keyframes intro-overlay-fallback {
+          to { opacity: 0; pointer-events: none; }
+        }
+      `}</style>
       <section className="parallax__header" data-section="hero">
         <div className="parallax__visuals">
           <div data-parallax-layers className="parallax__layers">

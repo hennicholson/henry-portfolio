@@ -156,6 +156,59 @@ export function ScrollTimeline() {
         });
       });
 
+      // Body text word-by-word scroll reveal
+      entryRefs.current.forEach((el) => {
+        if (!el) return;
+        const bodyWords = el.querySelectorAll<HTMLSpanElement>("[data-body-word]");
+        if (!bodyWords.length) return;
+        const bodyEl = el.querySelector("[data-body-text]");
+        if (!bodyEl) return;
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: bodyEl,
+            start: "top 75%",
+            end: "top 25%",
+            scrub: 0.3,
+          },
+        });
+
+        tl.to(bodyWords, {
+          opacity: 1,
+          y: 0,
+          stagger: { each: 1 / bodyWords.length },
+          duration: 1,
+          ease: "none",
+        });
+
+        // Glow the leading-edge word as the timeline scrubs
+        let lastGlowIdx = -1;
+        tl.eventCallback("onUpdate", () => {
+          // Find the last word that crossed the 0.85 opacity threshold
+          let leadIdx = -1;
+          for (let w = bodyWords.length - 1; w >= 0; w--) {
+            const o = Number(gsap.getProperty(bodyWords[w], "opacity"));
+            if (o > 0.85) { leadIdx = w; break; }
+          }
+          if (leadIdx !== lastGlowIdx) {
+            if (lastGlowIdx >= 0 && bodyWords[lastGlowIdx]) {
+              bodyWords[lastGlowIdx].style.textShadow = "none";
+            }
+            if (leadIdx >= 0) {
+              bodyWords[leadIdx].style.textShadow = "0 0 20px rgba(74,222,128,0.4)";
+            }
+            lastGlowIdx = leadIdx;
+          }
+        });
+      });
+
+      // Set initial state for body words
+      entryRefs.current.forEach((el) => {
+        if (!el) return;
+        const bodyWords = el.querySelectorAll("[data-body-word]");
+        bodyWords.forEach((w) => gsap.set(w, { opacity: 0.15, y: 2 }));
+      });
+
       // Set initial state for annotations
       annotationRefs.current.forEach((ann) => {
         if (!ann) return;
@@ -249,8 +302,17 @@ export function ScrollTimeline() {
                 <h3 className="text-lg md:text-xl font-semibold text-white/90 mb-2">
                   {m.title}
                 </h3>
-                <p className="text-sm md:text-base text-white/30 leading-relaxed mb-4 max-w-2xl">
-                  {m.body}
+                <p className="text-sm md:text-base text-white/30 leading-relaxed mb-4 max-w-2xl" data-body-text>
+                  {m.body.split(" ").map((word, wi) => (
+                    <span
+                      key={wi}
+                      data-body-word
+                      className="inline-block mr-[0.35em]"
+                      style={{ opacity: 0.15 }}
+                    >
+                      {word}
+                    </span>
+                  ))}
                 </p>
                 <p
                   className="text-lg md:text-xl text-white/25 italic"

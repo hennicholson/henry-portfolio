@@ -278,20 +278,39 @@ export function Toolbox({ categories }: { categories?: CategoryData[] }) {
     });
   };
 
-  // Animate tool items when drawer opens
+  // Animate tool items when drawer opens — scatter then snap into place
   useEffect(() => {
     if (!sectionRef.current) return;
     const drawers = sectionRef.current.querySelectorAll("[data-drawer]");
     drawers.forEach((drawer, idx) => {
       if (openDrawers.has(idx)) {
-        const items = drawer.querySelectorAll("[data-tool-item]");
+        const items = drawer.querySelectorAll<HTMLElement>("[data-tool-item]");
         items.forEach((item, itemIdx) => {
+          // Seed scatter positions deterministically per item index
+          const seed = idx * 10 + itemIdx;
+          const scatterX = ((seed * 7 + 3) % 31 - 15);    // -15 to +15
+          const scatterY = ((seed * 13 + 5) % 21 - 10);   // -10 to +10
+          const scatterRot = ((seed * 11 + 7) % 17 - 8);  // -8 to +8
+
+          // Set scattered initial state
+          gsap.set(item, {
+            x: scatterX,
+            y: scatterY,
+            rotation: scatterRot,
+            opacity: 0,
+            scale: 0.7,
+          });
+
+          // Snap into place with elastic ease
           gsap.to(item, {
-            opacity: 1,
+            x: 0,
             y: 0,
-            duration: 0.35,
+            rotation: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
             delay: itemIdx * 0.04,
-            ease: "power2.out",
+            ease: "elastic.out(1, 0.5)",
           });
         });
       }

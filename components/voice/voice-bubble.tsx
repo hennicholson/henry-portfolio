@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import { useVoice } from "./voice-provider";
+import { CallSummary } from "./call-summary";
 import { Mic, PhoneOff } from "lucide-react";
 import gsap from "gsap";
 
@@ -88,6 +89,7 @@ export function VoiceBubble() {
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
         disabled={isConnecting}
+        data-magnetic
         className="fixed bottom-6 right-6 z-50 flex items-center justify-center rounded-full transition-all duration-300 opacity-0"
         style={{
           width: isActive ? 52 : 56,
@@ -151,6 +153,7 @@ export function VoiceBubble() {
           <Mic size={20} className="text-white/40" />
         )}
       </button>
+      <CallSummary />
     </>
   );
 }

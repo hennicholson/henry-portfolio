@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useCallback, useRef, useEffect } from "react";
+import { createContext, useContext, useCallback, useRef, useEffect, useState } from "react";
 import {
   ConversationProvider as ELConversationProvider,
   useConversationControls,
@@ -15,11 +15,21 @@ gsap.registerPlugin(ScrollToPlugin);
 
 type VoiceStatus = "connected" | "disconnected" | "connecting" | "error";
 
+export interface CallSummaryData {
+  sectionsVisited: string[];
+  projectsViewed: string[];
+  durationSeconds: number;
+  capturedName: string | null;
+  capturedEmail: string | null;
+}
+
 interface VoiceContextValue {
   status: VoiceStatus;
   isSpeaking: boolean;
   startConversation: () => void;
   endConversation: () => void;
+  callSummary: CallSummaryData | null;
+  dismissSummary: () => void;
 }
 
 const VoiceContext = createContext<VoiceContextValue>({
@@ -27,6 +37,8 @@ const VoiceContext = createContext<VoiceContextValue>({
   isSpeaking: false,
   startConversation: () => {},
   endConversation: () => {},
+  callSummary: null,
+  dismissSummary: () => {},
 });
 
 export function useVoice() {
@@ -81,6 +93,13 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
   const lastSectionRef = useRef<string | null>(null);
   const scrollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Call tracking
+  const visitedSectionsRef = useRef<Set<string>>(new Set());
+  const viewedProjectsRef = useRef<string[]>([]);
+  const callStartRef = useRef<number>(0);
+  const [callSummary, setCallSummary] = useState<CallSummaryData | null>(null);
+  const dismissSummary = useCallback(() => setCallSummary(null), []);
+
   // --- Scroll-aware context: send updates when user scrolls to new sections ---
   useEffect(() => {
     if (status !== "connected") {
@@ -97,6 +116,7 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
       const current = getVisibleSection();
       if (current && current !== lastSectionRef.current) {
         lastSectionRef.current = current;
+        visitedSectionsRef.current.add(current);
         const label = SECTION_LABELS[current] || current;
 
         let extra = "";
@@ -145,6 +165,11 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
 
       const title = card.querySelector("h3")?.textContent?.trim();
       if (!title) return;
+
+      // Track viewed projects
+      if (!viewedProjectsRef.current.includes(title)) {
+        viewedProjectsRef.current.push(title);
+      }
 
       // Try to grab subtitle and description from the viewer that opens
       setTimeout(() => {
@@ -243,6 +268,12 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
   );
 
   const startConversation = useCallback(() => {
+    // Reset tracking for new call
+    visitedSectionsRef.current.clear();
+    viewedProjectsRef.current = [];
+    callStartRef.current = Date.now();
+    setCallSummary(null);
+
     // Send initial context burst when conversation starts
     const section = getVisibleSection();
     const sectionLabel = section ? SECTION_LABELS[section] || section : "the top of the page";
@@ -259,6 +290,18 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
   }, [controls]);
 
   const endConversation = useCallback(() => {
+    // Build summary before resetting
+    const duration = callStartRef.current ? Math.round((Date.now() - callStartRef.current) / 1000) : 0;
+    if (duration > 3) {
+      setCallSummary({
+        sectionsVisited: Array.from(visitedSectionsRef.current),
+        projectsViewed: [...viewedProjectsRef.current],
+        durationSeconds: duration,
+        capturedName: leadRef.current.name,
+        capturedEmail: leadRef.current.email,
+      });
+    }
+
     leadRef.current = { id: null, name: null, email: null };
     lastSectionRef.current = null;
     controls.endSession();
@@ -271,6 +314,8 @@ function VoiceContextBridge({ children }: { children: React.ReactNode }) {
         isSpeaking,
         startConversation,
         endConversation,
+        callSummary,
+        dismissSummary,
       }}
     >
       {children}
@@ -289,6 +334,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
           isSpeaking: false,
           startConversation: () => {},
           endConversation: () => {},
+          callSummary: null,
+          dismissSummary: () => {},
         }}
       >
         {children}
