@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Caveat } from "next/font/google";
 import "./globals.css";
 import { VoiceProvider } from "@/components/voice/voice-provider";
@@ -54,6 +54,10 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
     },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#050508",
 };
 
 const personJsonLd = {
