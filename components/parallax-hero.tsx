@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronDown } from "lucide-react";
+import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,6 +26,7 @@ export function ParallaxHero() {
     holdTimer.current = setTimeout(() => {
       if (scattered.current || !h1Ref.current) return;
       scattered.current = true;
+      soundEngine.play("party");
 
       const letters = h1Ref.current.querySelectorAll<HTMLElement>("[data-letter]");
       letters.forEach((el) => {
@@ -63,6 +65,8 @@ export function ParallaxHero() {
     );
     if (!triggerElement) return;
 
+    let introTL: gsap.core.Timeline | undefined;
+
     const skipIntro = sessionStorage.getItem("intro-played") === "1"
       || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -82,7 +86,7 @@ export function ParallaxHero() {
         if (el) gsap.set(el, { opacity: 0 });
       });
 
-      const introTL = gsap.timeline({
+      introTL = gsap.timeline({
         delay: 0.2,
         onComplete: () => {
           sessionStorage.setItem("intro-played", "1");
@@ -114,6 +118,7 @@ export function ParallaxHero() {
         duration: 0.8,
         ease: "power2.inOut",
       }, 1.4);
+      introTL.set(overlayRef.current, { pointerEvents: "none" }, 1.4);
 
       // Scale & move the intro text container to match hero position
       const introTextContainer = overlayRef.current?.querySelector("[data-intro-text]");
@@ -134,7 +139,7 @@ export function ParallaxHero() {
 
       introTL.to([ghostH1Ref.current, ghostSubtitleRef.current].filter(Boolean), {
         opacity: 1,
-        duration: 0.6,
+        duration: 0.4,
         ease: "power2.out",
       }, 1.8);
 
@@ -193,6 +198,8 @@ export function ParallaxHero() {
     return () => {
       ScrollTrigger.getAll().forEach((st) => st.kill());
       gsap.killTweensOf(triggerElement);
+      introTL?.kill();
+      document.body.style.overflow = "";
     };
   }, []);
 
@@ -211,7 +218,7 @@ export function ParallaxHero() {
     <>
       <h1
         ref={h1RefProp}
-        className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9] select-none"
+        className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9] select-none"
         style={{
           textShadow: "0 2px 20px rgba(0, 0, 0, 0.6)",
           opacity: 0,
@@ -254,7 +261,7 @@ export function ParallaxHero() {
           <div data-intro-text className="flex flex-col items-center" style={{ transform: "scale(1.3)" }}>
             <h1
               ref={introH1Ref}
-              className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9] select-none"
+              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9] select-none"
               style={{
                 textShadow: "0 2px 20px rgba(0, 0, 0, 0.6)",
                 opacity: 0,
@@ -292,7 +299,7 @@ export function ParallaxHero() {
               className="parallax__layer-img parallax__layer-hw md:!hidden"
             />
             <video
-              src="/hero-bg-video.mp4"
+              src="/hero-bg-video-boomerang.mp4"
               autoPlay
               muted
               loop
