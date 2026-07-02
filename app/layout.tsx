@@ -58,38 +58,45 @@ export const metadata: Metadata = {
 
 const personJsonLd = {
   "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Henry Nicholson",
-  url: "https://henrynicholson.dev",
-  jobTitle: "Creative Developer & Designer",
-  description:
-    "AI-forward creative developer and designer based in San Diego. Junior Associate at Global Prairie, and independent creator of Skinny Studio, vibechckd, LaunchPad, Sevas.xyz, and ForeFront. Self-taught since age 13; co-founded STEEZ and Out Of Style.",
-  worksFor: {
-    "@type": "Organization",
-    name: "Global Prairie",
+  "@type": "ProfilePage",
+  dateCreated: "2026-04-02",
+  dateModified: "2026-07-02",
+  mainEntity: {
+    "@type": "Person",
+    name: "Henry Nicholson",
+    identifier: "henrymnicholson",
+    url: "https://henrynicholson.dev",
+    image: "https://henrynicholson.dev/opengraph-image",
+    jobTitle: "Creative Developer & Designer",
+    description:
+      "AI-forward creative developer and designer based in San Diego. Junior Associate at Global Prairie, and independent creator of Skinny Studio, vibechckd, LaunchPad, Sevas.xyz, and ForeFront. Self-taught since age 13; co-founded STEEZ and Out Of Style.",
+    worksFor: {
+      "@type": "Organization",
+      name: "Global Prairie",
+    },
+    alumniOf: {
+      "@type": "CollegeOrUniversity",
+      name: "University of San Diego",
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "San Diego",
+      addressRegion: "CA",
+    },
+    knowsAbout: [
+      "Software Development",
+      "Artificial Intelligence",
+      "Whop App Development",
+      "Creative AI Tooling",
+      "SaaS Product Development",
+      "Brand Development",
+      "Digital Product Design",
+    ],
+    sameAs: [
+      "https://x.com/henryfromskinny",
+      "https://www.linkedin.com/in/henrymnicholson/",
+    ],
   },
-  alumniOf: {
-    "@type": "CollegeOrUniversity",
-    name: "University of San Diego",
-  },
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "San Diego",
-    addressRegion: "CA",
-  },
-  knowsAbout: [
-    "Software Development",
-    "Artificial Intelligence",
-    "Whop App Development",
-    "Creative AI Tooling",
-    "SaaS Product Development",
-    "Brand Development",
-    "Digital Product Design",
-  ],
-  sameAs: [
-    "https://x.com/henryfromskinny",
-    "https://www.linkedin.com/in/henrymnicholson/",
-  ],
 };
 
 export default function RootLayout({

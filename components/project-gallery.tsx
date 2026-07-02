@@ -418,7 +418,7 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
           <img
             data-card-thumb
             src={project.thumbnail}
-            alt=""
+            alt={`${project.title} — project thumbnail`}
             className="absolute inset-0 w-full h-full object-cover object-top transform-gpu transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             loading="lazy"
           />
@@ -626,7 +626,7 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
               <div className="relative overflow-hidden" style={{ height: "120px" }}>
                 <img
                   src={project.thumbnail}
-                  alt=""
+                  alt={`${project.title} — project thumbnail`}
                   className="absolute inset-0 w-full h-full object-cover object-top"
                   loading="lazy"
                 />
