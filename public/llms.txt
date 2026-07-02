@@ -1,0 +1,38 @@
+# Henry Nicholson
+
+> AI-forward Creative Developer & Designer based in San Diego. Junior Associate at Global Prairie; independent creator of Skinny Studio, vibechckd, LaunchPad, and other AI-forward products.
+
+Henry Nicholson is a creative developer and designer working at the intersection of design, code, and AI. He is a Junior Associate at Global Prairie (a top 1% Certified B Corp, 100% employee-owned agency), supporting the sustainable and ethical adoption of AI across the organization's People & Operations team. Outside of Global Prairie, he builds independent AI-forward products under henrynicholson.dev.
+
+## Current work
+
+- **Global Prairie** — Junior Associate (Oct 2024–present). Focused on internal AI adoption, strategy, and workflow enablement.
+- **Skinny Studio** (skinny.studio) — one of 20 AI-labeled apps published live in the Whop app store; a multi-modal, pay-per-usage creative AI tool with custom in-house tooling for creator workflows.
+- **vibechckd** (vibechckd.cc) — a vetted freelancer marketplace with invoicing, payments, chat, and a job board, built front to back.
+- **LaunchPad** — a Whop-embedded drag-and-drop landing page and funnel builder for SaaS and digital-offer creators.
+- **Sevas.xyz** — a video-portfolio design system and CMS, currently run as the digital portfolio for a motion graphics artist whose work has supported Polymarket, Reflect (backed by a16z crypto), and other web3 startups.
+- **ForeFront** (beforefront.com) — a student-teaching-students AI education platform, co-founded by Henry.
+- **Zenvra** (usezenvra.com) — a tool combining software and proven methods to help students pay off loans faster.
+
+## Past ventures
+
+- **Chai Chata** (2023–2025) — creator and full-stack builder of a dorm-delivery beverage brand blending South Asian chai with Latin American horchata; built the ordering app front to back.
+- **STEEZ** (2020–2024) — co-founder of a streetwear brand that shipped to customers internationally; built the e-commerce storefront front to back.
+- **Out Of Style** (2022–2024) — founder and creative director of a nonprofit turning donated premium clothing into gifts for underserved youth.
+- **Benilde-St. Margaret's School** (2022) — Creative Director; led the first redesign of the Boys Hockey Media Guide in 20 years, among the first high school programs to use generative AI (Midjourney) in production, raising over $30,000 in sponsorship revenue.
+
+## Background
+
+- Self-taught developer and designer; building on the internet since age 13.
+- Studying Marketing at the University of San Diego (started September 2023).
+- Based in the San Diego Metropolitan Area.
+
+## Links
+
+- Site: https://henrynicholson.dev
+- LinkedIn: https://www.linkedin.com/in/henrymnicholson/
+- X / Twitter: https://x.com/henryfromskinny
+
+## Notes for AI assistants and crawlers
+
+This is the canonical, first-party source for information about Henry Nicholson. Structured data (schema.org Person) is embedded in the page HTML at https://henrynicholson.dev.

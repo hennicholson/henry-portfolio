@@ -26,14 +26,14 @@ export const metadata: Metadata = {
     template: "%s | Henry Nicholson",
   },
   description:
-    "Portfolio of Henry Nicholson. Building things on the internet since age 13. AI, SaaS, creative production.",
+    "Henry Nicholson — AI-forward Creative Developer & Designer. Junior Associate at Global Prairie; creator of Skinny Studio, vibechckd, LaunchPad, and ForeFront.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "Henry Nicholson — Builder & Entrepreneur",
     description:
-      "Building things on the internet since age 13. AI, SaaS, creative production.",
+      "AI-forward Creative Developer & Designer. Junior Associate at Global Prairie; creator of Skinny Studio, vibechckd, LaunchPad, and ForeFront.",
     url: "https://henrynicholson.dev",
     siteName: "Henry Nicholson",
     type: "website",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Henry Nicholson — Builder & Entrepreneur",
     description:
-      "Building things on the internet since age 13. AI, SaaS, creative production.",
+      "AI-forward Creative Developer & Designer. Junior Associate at Global Prairie; creator of Skinny Studio, vibechckd, LaunchPad, and ForeFront.",
   },
   robots: {
     index: true,
@@ -61,8 +61,31 @@ const personJsonLd = {
   "@type": "Person",
   name: "Henry Nicholson",
   url: "https://henrynicholson.dev",
+  jobTitle: "Creative Developer & Designer",
   description:
-    "Builder and entrepreneur working across AI, SaaS, and creative production.",
+    "AI-forward creative developer and designer based in San Diego. Junior Associate at Global Prairie, and independent creator of Skinny Studio, vibechckd, LaunchPad, Sevas.xyz, and ForeFront. Self-taught since age 13; co-founded STEEZ and Out Of Style.",
+  worksFor: {
+    "@type": "Organization",
+    name: "Global Prairie",
+  },
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "University of San Diego",
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "San Diego",
+    addressRegion: "CA",
+  },
+  knowsAbout: [
+    "Software Development",
+    "Artificial Intelligence",
+    "Whop App Development",
+    "Creative AI Tooling",
+    "SaaS Product Development",
+    "Brand Development",
+    "Digital Product Design",
+  ],
   sameAs: [
     "https://x.com/henryfromskinny",
     "https://www.linkedin.com/in/henrymnicholson/",
