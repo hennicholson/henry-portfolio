@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -63,6 +64,7 @@ export function ScrollProgress() {
 
   // Animate dots and labels on chapter change
   useEffect(() => {
+    soundEngine.playThrottled("sectionEnter", 800);
     // Celebrate the chapter we just left
     if (activeChapter > prevChapter.current) {
       const completedDot = dotRefs.current[prevChapter.current];
@@ -113,6 +115,7 @@ export function ScrollProgress() {
   }, [activeChapter]);
 
   const scrollTo = useCallback((id: string, index: number) => {
+    soundEngine.play("click");
     if (index === 0) {
       gsap.to(window, { scrollTo: { y: 0 }, duration: 1.2, ease: "power3.inOut" });
       return;

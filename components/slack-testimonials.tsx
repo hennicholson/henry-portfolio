@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Send, X, User } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,6 +15,26 @@ interface TestimonialData {
   avatarUrl?: string | null;
   workplace?: string | null;
   color: string;
+}
+
+const REACTION_EMOJIS = ["🔥", "💯", "🙌", "❤️", "👏", "✨"];
+
+interface ReactionMap {
+  [testimonialId: number]: { [emoji: string]: number };
+}
+
+interface MyReactions {
+  [key: string]: boolean; // "testimonialId:emoji" -> true
+}
+
+function getVisitorId(): string {
+  if (typeof localStorage === "undefined") return "anon";
+  let id = localStorage.getItem("visitor-id");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("visitor-id", id);
+  }
+  return id;
 }
 
 const fallbackMessages: TestimonialData[] = [
@@ -55,9 +76,104 @@ function TypingDots() {
   );
 }
 
-function MessageItem({ msg, revealed, typing }: { msg: TestimonialData; revealed: boolean; typing: boolean }) {
+function ReactionBar({
+  msgId,
+  reactions,
+  myReactions,
+  onReact,
+  revealed,
+}: {
+  msgId: number;
+  reactions: { [emoji: string]: number };
+  myReactions: MyReactions;
+  onReact: (testimonialId: number, emoji: string) => void;
+  revealed: boolean;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+
+  if (!revealed) return null;
+
+  const activeReactions = Object.entries(reactions).filter(([, count]) => count > 0);
+
   return (
-    <div className="flex gap-3 py-3">
+    <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+      {/* Existing reaction pills */}
+      {activeReactions.map(([emoji, count]) => {
+        const isMine = myReactions[`${msgId}:${emoji}`];
+        return (
+          <button
+            key={emoji}
+            onClick={() => onReact(msgId, emoji)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: isMine ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${isMine ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.06)"}`,
+            }}
+          >
+            <span>{emoji}</span>
+            <span className={isMine ? "text-green-400/60 font-mono" : "text-white/25 font-mono"}>{count}</span>
+          </button>
+        );
+      })}
+
+      {/* Add reaction button */}
+      <div className="relative">
+        <button
+          onClick={() => setShowPicker(!showPicker)}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 hover:scale-110"
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.04)",
+          }}
+        >
+          <span className="text-white/15 text-[10px]">+</span>
+        </button>
+
+        {showPicker && (
+          <div
+            className="absolute bottom-full left-0 mb-1 flex gap-0.5 p-1 rounded-lg z-10"
+            style={{
+              background: "rgba(12,12,20,0.95)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
+            }}
+          >
+            {REACTION_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => {
+                  onReact(msgId, emoji);
+                  setShowPicker(false);
+                }}
+                className="w-9 h-9 flex items-center justify-center rounded hover:bg-white/[0.06] transition-all duration-150 hover:scale-125 text-sm"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MessageItem({
+  msg,
+  revealed,
+  typing,
+  reactions,
+  myReactions,
+  onReact,
+}: {
+  msg: TestimonialData;
+  revealed: boolean;
+  typing: boolean;
+  reactions: { [emoji: string]: number };
+  myReactions: MyReactions;
+  onReact: (testimonialId: number, emoji: string) => void;
+}) {
+  return (
+    <div className="flex gap-3 py-3 group/msg">
       {/* Avatar */}
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-semibold select-none"
@@ -92,6 +208,17 @@ function MessageItem({ msg, revealed, typing }: { msg: TestimonialData; revealed
             {msg.text}
           </p>
         </div>
+
+        {/* Reactions */}
+        {msg.id && (
+          <ReactionBar
+            msgId={msg.id}
+            reactions={reactions}
+            myReactions={myReactions}
+            onReact={onReact}
+            revealed={revealed}
+          />
+        )}
       </div>
     </div>
   );
@@ -207,8 +334,71 @@ export default function SlackTestimonials({
   const [inputText, setInputText] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [reactions, setReactions] = useState<ReactionMap>({});
+  const [myReactions, setMyReactions] = useState<MyReactions>({});
 
   const messages = testimonials && testimonials.length > 0 ? testimonials : fallbackMessages;
+
+  // Fetch reaction counts on mount
+  useEffect(() => {
+    const ids = messages.filter((m) => m.id).map((m) => m.id!);
+    if (ids.length === 0) return;
+    fetch(`/api/testimonials/react?ids=${ids.join(",")}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.counts) {
+          const map: ReactionMap = {};
+          for (const row of data.counts) {
+            if (!map[row.testimonialId]) map[row.testimonialId] = {};
+            map[row.testimonialId][row.emoji] = row.count;
+          }
+          setReactions(map);
+        }
+      })
+      .catch(() => {});
+
+    // Load my reactions from localStorage
+    if (typeof localStorage !== "undefined") {
+      const stored = localStorage.getItem("my-reactions");
+      if (stored) {
+        try { setMyReactions(JSON.parse(stored)); } catch {}
+      }
+    }
+  }, [messages.length]);
+
+  const handleReact = async (testimonialId: number, emoji: string) => {
+    const visitorId = getVisitorId();
+    const key = `${testimonialId}:${emoji}`;
+    const wasMine = myReactions[key];
+
+    // Optimistic update
+    setReactions((prev) => {
+      const next = { ...prev };
+      if (!next[testimonialId]) next[testimonialId] = {};
+      const current = next[testimonialId][emoji] || 0;
+      next[testimonialId] = { ...next[testimonialId], [emoji]: wasMine ? Math.max(0, current - 1) : current + 1 };
+      return next;
+    });
+
+    const nextMyReactions = { ...myReactions };
+    if (wasMine) {
+      delete nextMyReactions[key];
+    } else {
+      nextMyReactions[key] = true;
+    }
+    setMyReactions(nextMyReactions);
+    localStorage.setItem("my-reactions", JSON.stringify(nextMyReactions));
+
+    soundEngine.play("pop");
+
+    try {
+      await fetch("/api/testimonials/react", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ testimonialId, emoji, visitorId }),
+      });
+    } catch {}
+  };
 
   // Scroll-triggered message reveal
   useEffect(() => {
@@ -243,6 +433,7 @@ export default function SlackTestimonials({
                 return next;
               });
               setRevealedMessages((prev) => new Set(prev).add(i));
+              soundEngine.play("pop");
             }, i * 1200 + 700);
           });
         },
@@ -267,6 +458,7 @@ export default function SlackTestimonials({
       setShowForm(false);
       setInputText("");
       setSubmitSuccess(true);
+      soundEngine.play("success");
       setTimeout(() => setSubmitSuccess(false), 3500);
     } catch {
       // silently fail
@@ -274,8 +466,8 @@ export default function SlackTestimonials({
   };
 
   return (
-    <section ref={sectionRef} data-section="testimonials" className="py-14 md:py-20">
-      <div className="w-[90vw] max-w-5xl mx-auto px-6">
+    <section ref={sectionRef} data-section="testimonials" className="py-10 md:py-20">
+      <div className="w-[90vw] max-w-5xl mx-auto px-4 md:px-6">
         {/* Section header */}
         <div className="mb-10 text-center">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
@@ -336,6 +528,9 @@ export default function SlackTestimonials({
                   msg={msg}
                   revealed={revealedMessages.has(index)}
                   typing={typingMessages.has(index)}
+                  reactions={msg.id ? reactions[msg.id] || {} : {}}
+                  myReactions={myReactions}
+                  onReact={handleReact}
                 />
               ))}
             </div>

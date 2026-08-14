@@ -1,6 +1,6 @@
 import { db } from "./index";
-import { projects, leads, toolCategories, tools, testimonials } from "./schema";
-import { eq, asc, desc } from "drizzle-orm";
+import { projects, leads, toolCategories, tools, testimonials, testimonialReactions, guides } from "./schema";
+import { eq, asc, desc, and, sql } from "drizzle-orm";
 import type { ProjectData } from "@/components/project-gallery";
 export type { ProjectData };
 
@@ -89,4 +89,70 @@ export async function getVisibleTestimonials() {
 
 export async function getAllTestimonials() {
   return db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
+}
+
+export interface ReactionCount {
+  testimonialId: number;
+  emoji: string;
+  count: number;
+}
+
+export async function getReactionCounts(testimonialIds: number[]): Promise<ReactionCount[]> {
+  if (testimonialIds.length === 0) return [];
+  try {
+    const rows = await db
+      .select({
+        testimonialId: testimonialReactions.testimonialId,
+        emoji: testimonialReactions.emoji,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(testimonialReactions)
+      .where(sql`${testimonialReactions.testimonialId} = ANY(${testimonialIds})`)
+      .groupBy(testimonialReactions.testimonialId, testimonialReactions.emoji);
+    return rows;
+  } catch (error) {
+    console.error("Failed to fetch reaction counts:", error);
+    return [];
+  }
+}
+
+export async function toggleReaction(testimonialId: number, emoji: string, visitorId: string): Promise<"added" | "removed"> {
+  const existing = await db
+    .select()
+    .from(testimonialReactions)
+    .where(
+      and(
+        eq(testimonialReactions.testimonialId, testimonialId),
+        eq(testimonialReactions.emoji, emoji),
+        eq(testimonialReactions.visitorId, visitorId),
+      )
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db.delete(testimonialReactions).where(eq(testimonialReactions.id, existing[0].id));
+    return "removed";
+  } else {
+    await db.insert(testimonialReactions).values({ testimonialId, emoji, visitorId });
+    return "added";
+  }
+}
+
+// ─── Guides ───
+
+export async function getVisibleGuides() {
+  try {
+    return await db
+      .select()
+      .from(guides)
+      .where(eq(guides.visible, true))
+      .orderBy(asc(guides.sortOrder));
+  } catch (error) {
+    console.error("Failed to fetch guides:", error);
+    return [];
+  }
+}
+
+export async function getAllGuides() {
+  return db.select().from(guides).orderBy(asc(guides.sortOrder));
 }

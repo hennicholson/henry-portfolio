@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { soundEngine } from "@/lib/sounds";
 
 // Konami: ↑↑↓↓←→←→BA
 const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
@@ -51,6 +52,7 @@ export function EasterEggs() {
             firedKonami.current = true;
             konamiIndex.current = 0;
             triggerPartyMode();
+            soundEngine.play("party");
             showToast("You found the cheat code \u{1F3AE}");
           }
         } else {
@@ -67,6 +69,7 @@ export function EasterEggs() {
         if (helloBuffer.current.includes("hello")) {
           firedHello.current = true;
           helloBuffer.current = "";
+          soundEngine.play("success");
           showToast("Hey! \u{1F44B} Glad you\u2019re curious.");
         }
       }

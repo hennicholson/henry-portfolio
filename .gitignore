@@ -49,3 +49,7 @@ CLAUDE.md
 
 # Stale nested folder
 /portfolio/
+
+# local capture tooling — never ship
+portfolio-recording.mp4
+record-portfolio.mjs

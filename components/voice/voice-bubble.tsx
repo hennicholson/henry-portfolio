@@ -5,6 +5,7 @@ import { useVoice } from "./voice-provider";
 import { CallSummary } from "./call-summary";
 import { Mic, PhoneOff } from "lucide-react";
 import gsap from "gsap";
+import { soundEngine } from "@/lib/sounds";
 
 function MiniWaveform({ speaking }: { speaking: boolean }) {
   return (
@@ -28,7 +29,7 @@ function MiniWaveform({ speaking }: { speaking: boolean }) {
 }
 
 export function VoiceBubble() {
-  const { status, isSpeaking, startConversation, endConversation } = useVoice();
+  const { status, isSpeaking, startConversation, endConversation, warm } = useVoice();
   const bubbleRef = useRef<HTMLButtonElement>(null);
   const [enteredOnce, setEnteredOnce] = useState(false);
   const [hovering, setHovering] = useState(false);
@@ -63,8 +64,10 @@ export function VoiceBubble() {
 
   const handleClick = () => {
     if (isActive) {
+      soundEngine.play("close");
       endConversation();
     } else if (isDisconnected) {
+      soundEngine.play("chime");
       startConversation();
     }
   };
@@ -83,7 +86,7 @@ export function VoiceBubble() {
           50% { transform: scale(1.15); opacity: 0; }
         }
       `}</style>
-      <button
+      <button onPointerEnter={warm}
         ref={bubbleRef}
         onClick={handleClick}
         onMouseEnter={() => setHovering(true)}
@@ -151,6 +154,25 @@ export function VoiceBubble() {
           )
         ) : (
           <Mic size={20} className="text-white/40" />
+        )}
+
+        {/* Hover tooltip */}
+        {hovering && isDisconnected && (
+          <div
+            className="absolute bottom-full right-0 mb-3 px-3 py-1.5 rounded-lg whitespace-nowrap pointer-events-none"
+            style={{
+              background: "rgba(10,10,16,0.9)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+            }}
+          >
+            <span className="text-[11px] text-white/60 font-medium">Chat with AI Henry</span>
+            {/* Arrow */}
+            <div
+              className="absolute -bottom-1 right-6 w-2 h-2 rotate-45"
+              style={{ background: "rgba(10,10,16,0.9)", borderRight: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}
+            />
+          </div>
         )}
       </button>
       <CallSummary />

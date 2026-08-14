@@ -22,6 +22,109 @@ export function ParallaxHero() {
   const scattered = useRef(false);
   const [showOverlay, setShowOverlay] = useState(true);
 
+  /* Safari is the only engine that renders alpha in HEVC; Chrome reports it
+     cannot play hvc1 at all. Offering both via a <source> list makes Chrome
+     reject the first candidate and settle loaded-but-paused, so pick the file
+     by codec probe instead and keep a plain src on the element. The WebM is
+     the server-rendered default because that is the proven Chrome path. */
+  const [figureSrc, setFigureSrc] = useState("/hero-figure-v2.webm");
+
+  /* Which breakpoint's video to mount. Both videos used to sit in the DOM and
+     the hidden one still downloaded — phones pulled the 3.2MB desktop file,
+     desktops pulled the mobile one. null until hydration; the posters cover
+     the first paint on both breakpoints. */
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const probe = document.createElement("video");
+    if (probe.canPlayType('video/mp4; codecs="hvc1"')) {
+      setFigureSrc("/hero-figure-alpha.mp4");
+    }
+  }, []);
+
+  /* Keep every hero video actually playing — and only while the hero is on
+     screen. Three looping videos kept decoding while the visitor read
+     sections a full page below; an IntersectionObserver pauses them offscreen
+     and resumes on return. The stall recovery (load()+play for the VP9 figure
+     video that parks itself) stays, but skips pauses the observer caused. */
+  useEffect(() => {
+    const root = parallaxRef.current;
+    if (!root) return;
+
+    const videos = Array.from(root.querySelectorAll("video"));
+    if (videos.length === 0) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let ioPaused = false;
+    let heroVisible = true;
+
+    const bound = videos.map((video) => {
+      let recoveries = 0;
+
+      const start = () => {
+        if (!heroVisible || !video.paused) return;
+        video.play().catch(() => {
+          /* blocked (iOS Low Power Mode, etc.) — the poster stands in */
+        });
+      };
+
+      const recover = () => {
+        if (ioPaused || !heroVisible || !video.paused || recoveries >= 3) return;
+        recoveries += 1;
+        try {
+          video.load();
+        } catch {
+          /* nothing to recover */
+        }
+        video.play().catch(() => {});
+      };
+
+      const onPause = () => {
+        timers.push(setTimeout(recover, 300));
+      };
+
+      start();
+      video.addEventListener("loadeddata", start);
+      video.addEventListener("canplay", start);
+      video.addEventListener("pause", onPause);
+
+      return { video, start, onPause };
+    });
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        heroVisible = entries.some((e) => e.isIntersecting);
+        if (heroVisible) {
+          ioPaused = false;
+          bound.forEach(({ video }) => {
+            video.play().catch(() => {});
+          });
+        } else {
+          ioPaused = true;
+          bound.forEach(({ video }) => video.pause());
+        }
+      },
+      { rootMargin: "80px 0px" },
+    );
+    io.observe(root);
+
+    return () => {
+      io.disconnect();
+      timers.forEach(clearTimeout);
+      bound.forEach(({ video, start, onPause }) => {
+        video.removeEventListener("loadeddata", start);
+        video.removeEventListener("canplay", start);
+        video.removeEventListener("pause", onPause);
+      });
+    };
+  }, [isDesktop, figureSrc]);
+
   const handleNameHold = useCallback(() => {
     holdTimer.current = setTimeout(() => {
       if (scattered.current || !h1Ref.current) return;
@@ -66,6 +169,7 @@ export function ParallaxHero() {
     if (!triggerElement) return;
 
     let introTL: gsap.core.Timeline | undefined;
+    let introFailsafe: ReturnType<typeof setTimeout> | undefined;
 
     const skipIntro = sessionStorage.getItem("intro-played") === "1"
       || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -110,25 +214,18 @@ export function ParallaxHero() {
         );
       }
 
-      // Phase 2: Hold for a beat, then zoom out
-      // Calculate scale ratio: intro text is scale(1.3), hero text is scale(1)
-      // The overlay text will scale down + the overlay bg fades out to reveal the hero behind it
+      // Phase 2: Hold for a beat, then dissolve into the hero.
+      // The intro text never shares a position/size with the real hero
+      // text (different layout contexts — fixed-centered overlay vs.
+      // the parallax layout), so we don't try to zoom/morph it into
+      // place. A clean opacity-only crossfade never has a mismatch to
+      // "jump" across, regardless of viewport size.
       introTL.to(overlayRef.current, {
         opacity: 0,
         duration: 0.8,
         ease: "power2.inOut",
       }, 1.4);
       introTL.set(overlayRef.current, { pointerEvents: "none" }, 1.4);
-
-      // Scale & move the intro text container to match hero position
-      const introTextContainer = overlayRef.current?.querySelector("[data-intro-text]");
-      if (introTextContainer) {
-        introTL.to(introTextContainer, {
-          scale: 1 / 1.3, // zoom out from 1.3x to 1x
-          duration: 0.8,
-          ease: "power2.inOut",
-        }, 1.4);
-      }
 
       // Simultaneously reveal the real hero text
       introTL.to([h1Ref.current, subtitleRef.current].filter(Boolean), {
@@ -154,6 +251,16 @@ export function ParallaxHero() {
           2.0
         );
       }
+
+      // Safety net: if something stalls the timeline (slow device, tab
+      // throttling), snap it to completion instead of leaving the page
+      // stuck on the intro. Drives the same timeline GSAP already
+      // controls rather than fighting it with a separate CSS animation.
+      introFailsafe = setTimeout(() => {
+        if (introTL && introTL.progress() < 1) {
+          introTL.progress(1);
+        }
+      }, 6000);
     }
 
     const tl = gsap.timeline({
@@ -199,6 +306,7 @@ export function ParallaxHero() {
       ScrollTrigger.getAll().forEach((st) => st.kill());
       gsap.killTweensOf(triggerElement);
       introTL?.kill();
+      if (introFailsafe) clearTimeout(introFailsafe);
       document.body.style.overflow = "";
     };
   }, []);
@@ -255,7 +363,6 @@ export function ParallaxHero() {
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{
             backgroundColor: "#050508",
-            animation: "intro-overlay-fallback 0.6s ease-out 5s forwards",
           }}
         >
           <div data-intro-text className="flex flex-col items-center" style={{ transform: "scale(1.3)" }}>
@@ -282,31 +389,55 @@ export function ParallaxHero() {
           </div>
         </div>
       )}
-      <style jsx global>{`
-        @keyframes intro-overlay-fallback {
-          to { opacity: 0; pointer-events: none; }
-        }
-      `}</style>
       <section className="parallax__header" data-section="hero">
         <div className="parallax__visuals">
           <div data-parallax-layers className="parallax__layers">
-            {/* Layer 1: Background */}
+            {/* Layer 1: Background — mobile plays a lighter portrait encode of
+                the same boomerang. The poster is a frame OF that same video, so
+                poster and video share one aspect ratio and object-fit crops them
+                identically; a mismatched poster leaves a seam where iOS
+                composites the two. */}
             <img
-              src="/hero-bg.webp"
-              loading="eager"
-              data-parallax-layer="1"
+              src="/hero-bg-mobile.jpg"
               alt=""
+              loading="eager"
+              fetchPriority="high"
+              data-parallax-layer="1"
               className="parallax__layer-img parallax__layer-hw md:!hidden"
             />
-            <video
-              src="/hero-bg-video-boomerang.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
+            <img
+              src="/hero-bg-desktop.jpg"
+              alt=""
+              loading="eager"
+              fetchPriority="high"
               data-parallax-layer="1"
               className="parallax__layer-img parallax__layer-hw !hidden md:!block"
             />
+            {isDesktop === false && (
+              <video
+                src="/hero-bg-video-boomerang-mobile.mp4"
+                poster="/hero-bg-mobile.jpg"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                data-parallax-layer="1"
+                className="parallax__layer-img parallax__layer-hw parallax__bleed"
+              />
+            )}
+            {isDesktop === true && (
+              <video
+                src="/hero-bg-video-boomerang.mp4"
+                poster="/hero-bg-desktop.jpg"
+                autoPlay
+                muted
+                loop
+                playsInline
+                data-parallax-layer="1"
+                className="parallax__layer-img parallax__layer-hw"
+              />
+            )}
 
             {/* Layer 2: Gradient */}
             <div
@@ -319,32 +450,29 @@ export function ParallaxHero() {
               {textContent(h1Ref, subtitleRef, true)}
             </div>
 
-            {/* Layer 4: Foreground (mobile: single image, desktop: ridge + figure) */}
-            <img
-              src="/hero-fg.webp"
-              loading="eager"
-              data-parallax-layer="4"
-              alt=""
-              className="parallax__layer-img parallax__layer-hw md:!hidden"
-            />
-            <div
-              data-parallax-layer="4"
-              className="parallax__layer-img parallax__layer-hw !hidden md:!block"
-            >
+            {/* Layer 4: Foreground — one ridge + cut-out-figure stack on every
+                viewport. The source art is landscape, so on mobile the stack is
+                scaled past viewport width and pinned to the bottom rather than
+                cover-cropped, which would blow the figure up and clip it.
+                Tune the mobile size with --fg-scale in globals.css.
+                The figure file is chosen by codec probe above — Safari needs
+                HEVC to get an alpha channel, Chrome needs the WebM. */}
+            <div data-parallax-layer="4" className="parallax__layer-hw parallax__fg">
               <img
                 src="/hero-ridge-desktop.webp"
                 loading="eager"
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover"
+                className="parallax__fg-media"
               />
               <video
-                src="/hero-figure.webm"
+                key={figureSrc}
+                src={figureSrc}
                 autoPlay
                 muted
                 loop
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ top: "3px" }}
+                preload="auto"
+                className="parallax__fg-media"
               />
             </div>
 

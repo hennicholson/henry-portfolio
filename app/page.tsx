@@ -3,7 +3,8 @@ import { SkillsMarquee } from "@/components/skills-marquee";
 import { IntroText } from "@/components/intro-text";
 import { ScrollTimeline } from "@/components/scroll-timeline";
 import { Toolbox } from "@/components/toolbox";
-import { ProjectGallery } from "@/components/project-gallery";
+import { ProjectStage } from "@/components/project-stage";
+import { fallbackProjects } from "@/components/project-gallery";
 import SlackTestimonials from "@/components/slack-testimonials";
 import { NewsletterCTA } from "@/components/newsletter-cta";
 import { ScrollProgress } from "@/components/scroll-progress";
@@ -12,15 +13,18 @@ import { ConnectSection } from "@/components/connect-section";
 import { CommandPalette } from "@/components/command-palette";
 import { EasterEggs } from "@/components/easter-eggs";
 import { VoiceCTA } from "@/components/voice/voice-cta";
-import { getVisibleProjects, getVisibleToolCategories, getVisibleTestimonials } from "@/lib/db/queries";
+import { SoundToggle } from "@/components/sound-toggle";
+import { GuidesSection } from "@/components/guides-section";
+import { getVisibleProjects, getVisibleToolCategories, getVisibleTestimonials, getVisibleGuides } from "@/lib/db/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [projects, toolCategories, dbTestimonials] = await Promise.all([
+  const [projects, toolCategories, dbTestimonials, dbGuides] = await Promise.all([
     getVisibleProjects(),
     getVisibleToolCategories(),
     getVisibleTestimonials(),
+    getVisibleGuides(),
   ]);
 
   return (
@@ -28,6 +32,7 @@ export default async function Home() {
 <ScrollProgress />
       <CommandPalette />
       <EasterEggs />
+      <SoundToggle />
 
       <ParallaxHero />
 
@@ -45,7 +50,7 @@ export default async function Home() {
 
       <SectionTransition variant="chapter" />
 
-      <ProjectGallery projects={projects.length > 0 ? projects : undefined} />
+      <ProjectStage projects={projects.length > 0 ? projects : fallbackProjects} />
 
       <SlackTestimonials testimonials={dbTestimonials.length > 0 ? dbTestimonials.map((t) => ({
         id: t.id,
@@ -57,6 +62,23 @@ export default async function Home() {
       })) : undefined} />
 
       <NewsletterCTA />
+
+      <SectionTransition variant="chapter" />
+
+      <GuidesSection dbGuides={dbGuides.length > 0 ? dbGuides.map((g) => ({
+        id: g.slug,
+        title: g.title,
+        subtitle: g.subtitle,
+        summary: g.summary,
+        chapters: g.chapters,
+        pages: g.pages,
+        date: g.date,
+        accent: g.accent,
+        pdf: g.pdfUrl,
+        topics: g.topics,
+        toc: g.toc.length > 0 ? g.toc : undefined,
+        takeaways: g.takeaways.length > 0 ? g.takeaways : undefined,
+      })) : undefined} />
 
       <SectionTransition variant="subtle" />
 

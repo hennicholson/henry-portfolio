@@ -85,3 +85,51 @@ export const testimonials = pgTable("testimonials", {
 
 export type Testimonial = typeof testimonials.$inferSelect;
 export type NewTestimonial = typeof testimonials.$inferInsert;
+
+export const testimonialReactions = pgTable("testimonial_reactions", {
+  id: serial("id").primaryKey(),
+  testimonialId: integer("testimonial_id")
+    .notNull()
+    .references(() => testimonials.id, { onDelete: "cascade" }),
+  emoji: text("emoji").notNull(),
+  visitorId: text("visitor_id").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type TestimonialReaction = typeof testimonialReactions.$inferSelect;
+
+export const guides = pgTable("guides", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle").notNull().default(""),
+  summary: text("summary").notNull().default(""),
+  chapters: integer("chapters").notNull().default(0),
+  pages: integer("pages").notNull().default(0),
+  date: text("date").notNull().default(""),
+  accent: text("accent").notNull().default("#6366f1"),
+  pdfUrl: text("pdf_url").notNull().default(""),
+  topics: jsonb("topics").$type<string[]>().notNull().default([]),
+  toc: jsonb("toc").$type<{ title: string; page: number }[]>().notNull().default([]),
+  takeaways: jsonb("takeaways").$type<{ text: string }[]>().notNull().default([]),
+  sortOrder: integer("sort_order").notNull().default(0),
+  visible: boolean("visible").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type Guide = typeof guides.$inferSelect;
+export type NewGuide = typeof guides.$inferInsert;
+
+export const guideComments = pgTable("guide_comments", {
+  id: serial("id").primaryKey(),
+  guideSlug: text("guide_slug").notNull(),
+  chapter: text("chapter"),
+  name: text("name").notNull(),
+  text: text("text").notNull(),
+  visitorId: text("visitor_id").notNull(),
+  visible: boolean("visible").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type GuideComment = typeof guideComments.$inferSelect;

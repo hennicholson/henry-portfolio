@@ -1,0 +1,1093 @@
+/* Hallmark · genre: editorial · macrostructure: Workbench · theme: preserved-dark (section-scoped)
+ * shape: editorial spread — identity + spec column beside the live frame, card strip beneath
+ * section head: S2 hanging · CTA: C3 typographic link · enrichment: none (the live site is the evidence)
+ * pre-emit critique: P5 H5 E5 S5 R5 V4
+ * contrast: ink 97% / ink-2 78% / muted 62% on 13% paper; accent-ink verified on accent
+ */
+
+/* ── Tokens · scoped to the section, globals untouched ────────────────── */
+.pj {
+  --pj-paper: oklch(0.13 0.008 275);
+  --pj-paper-2: oklch(0.165 0.009 275);
+  --pj-paper-3: oklch(0.205 0.01 275);
+
+  --pj-ink: oklch(0.97 0.005 275);
+  --pj-ink-2: oklch(0.78 0.004 275);
+  --pj-muted: oklch(0.62 0.006 275);
+
+  --pj-rule: oklch(0.98 0.006 275 / 0.09);
+  --pj-rule-2: oklch(0.98 0.006 275 / 0.055);
+  --pj-track: oklch(0.98 0.006 275 / 0.18);
+
+  --pj-accent: oklch(0.79 0.145 68);
+  --pj-accent-ink: oklch(0.18 0.02 68);
+  --pj-accent-dim: oklch(0.79 0.145 68 / 0.16);
+  --pj-focus: oklch(0.82 0.13 68);
+
+  --pj-font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --pj-font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  --pj-space-3xs: 0.25rem;
+  --pj-space-2xs: 0.5rem;
+  --pj-space-xs: 0.75rem;
+  --pj-space-sm: 1rem;
+  --pj-space-md: 1.5rem;
+  --pj-space-lg: 2rem;
+  --pj-space-xl: 3rem;
+  --pj-space-2xl: 4.5rem;
+
+  --pj-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --pj-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --pj-dur: 220ms;
+  /* the frame resolve wants longer than a hover — it is a scene change */
+  --pj-dur-slow: 420ms;
+
+  --pj-veil-top: oklch(0.13 0.008 275 / 0.25);
+  --pj-veil-bottom: oklch(0.13 0.008 275 / 0.88);
+  --pj-backdrop: oklch(0.08 0.006 275 / 0.86);
+
+  --pj-radius: 10px;
+
+  /* set by ResizeObserver — stage width in px, drives the frame scale */
+  --pj-stage-w: 900;
+  --pj-frame-w: 1280;
+
+  /* interval for the auto-advance progress bar; the bar finishing IS what
+     advances the section, so this is the single source of truth for pacing */
+  --pj-interval: 7000ms;
+
+  position: relative;
+  font-family: var(--pj-font-display);
+  /* matches the 80px block padding every other section on the page uses */
+  padding-block: 5rem;
+  /* Switching projects rewrites content in place. Chrome's scroll anchoring
+     then "helpfully" adjusts scrollY to keep its anchor still, which shoves
+     the preview out from under the visitor. We stabilise the height below
+     instead, so there is nothing to compensate for. */
+  overflow-anchor: none;
+}
+
+.pj__wrap {
+  /* the site-wide container: w-[90vw] max-w-5xl mx-auto px-4 md:px-6 */
+  width: min(90vw, 64rem);
+  margin-inline: auto;
+  padding-inline: var(--pj-space-sm);
+}
+
+@media (min-width: 48rem) {
+  .pj__wrap {
+    padding-inline: var(--pj-space-md);
+  }
+}
+
+/* ── Section head — centred at 48px to match The Journey / The Toolbox /
+      My Take on Testimonials / Workflows & Guides / What's Next ────────── */
+.pj__head {
+  margin-bottom: var(--pj-space-lg);
+  text-align: center;
+}
+
+.pj__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.6rem + 2.2vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  color: var(--pj-ink);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.pj__lede {
+  margin: var(--pj-space-xs) auto 0;
+  max-width: 46ch;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--pj-muted);
+}
+
+/* ── Spread ───────────────────────────────────────────────────────────── */
+.pj__shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "frame"
+    "meta"
+    "nav";
+  gap: var(--pj-space-md);
+  border-top: 1px solid var(--pj-rule);
+  padding-top: var(--pj-space-md);
+}
+
+@media (min-width: 60rem) {
+  .pj__shell {
+    /* identity column first — the work is named before it is shown */
+    grid-template-columns: 17rem minmax(0, 1fr);
+    grid-template-areas:
+      "meta frame"
+      "nav  nav";
+    column-gap: var(--pj-space-lg);
+    row-gap: var(--pj-space-lg);
+    align-items: start;
+  }
+}
+
+/* ── Identity + spec column ───────────────────────────────────────────── */
+.pj__meta {
+  grid-area: meta;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pj-space-2xs);
+}
+
+.pj__numrow {
+  display: flex;
+  align-items: center;
+  gap: var(--pj-space-2xs);
+  margin-bottom: var(--pj-space-3xs);
+}
+
+.pj__num {
+  font-family: var(--pj-font-mono);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+  color: var(--pj-accent);
+}
+
+/* Stepping lives with the counter it changes, at the top of the column —
+   not flanking the gallery, where it stole the width the tiles needed. */
+.pj__arrow {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--pj-rule);
+  background: transparent;
+  color: var(--pj-ink-2);
+  cursor: pointer;
+  position: relative;
+  transition: color var(--pj-dur) var(--pj-ease-out),
+    border-color var(--pj-dur) var(--pj-ease-out),
+    background-color var(--pj-dur) var(--pj-ease-out);
+}
+
+/* expands the hit target past the 44px floor without changing visual size */
+.pj__arrow::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+.pj__name {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.125rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--pj-ink);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.pj__sub {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--pj-ink-2);
+  max-width: 34ch;
+}
+
+.pj__desc {
+  margin: var(--pj-space-2xs) 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--pj-muted);
+  max-width: 46ch;
+  /* Descriptions run from 40 to 510 characters. Left free they resize the
+     column on every switch — the jump the visitor feels. Four lines always,
+     reserved whether the copy fills them or not. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+  min-height: calc(4 * 1.6 * 0.8125rem);
+}
+
+/* Copy points stand in for prose on multi-arm projects. Same reserved height
+   as .pj__desc so the column never changes size between projects. */
+.pj__points {
+  margin: var(--pj-space-2xs) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pj-space-3xs);
+  min-height: calc(4 * 1.6 * 0.8125rem);
+  max-width: 46ch;
+}
+
+.pj__points li {
+  position: relative;
+  padding-inline-start: var(--pj-space-sm);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--pj-ink-2);
+}
+
+.pj__points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 8px;
+  height: 1px;
+  background: var(--pj-accent);
+}
+
+/* ── Spec list — mono labels, tabular values, hairline above ──────────── */
+.pj__spec {
+  margin: var(--pj-space-sm) 0 0;
+  padding-top: var(--pj-space-2xs);
+  border-top: 1px solid var(--pj-rule);
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  gap: var(--pj-space-3xs) var(--pj-space-2xs);
+  align-items: baseline;
+}
+
+.pj__spec dt {
+  font-family: var(--pj-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--pj-muted);
+}
+
+.pj__spec dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--pj-ink-2);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* live status lives in the column — never over the embedded site */
+.pj__state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pj-space-3xs);
+  font-family: var(--pj-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--pj-muted);
+  white-space: nowrap;
+}
+
+.pj__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--pj-muted);
+  flex: 0 0 auto;
+}
+
+.pj__state[data-state="live"] {
+  color: var(--pj-ink-2);
+}
+
+.pj__state[data-state="live"] .pj__dot {
+  background: var(--pj-accent);
+  box-shadow: 0 0 0 3px var(--pj-accent-dim);
+}
+
+.pj__state[data-state="loading"] .pj__dot {
+  animation: pj-pulse 1.4s var(--pj-ease-out) infinite;
+}
+
+@keyframes pj-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* ── Actions — typographic, no floating overlays on the frame ─────────── */
+.pj__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pj-space-sm);
+  margin-top: var(--pj-space-sm);
+  padding-top: var(--pj-space-2xs);
+  border-top: 1px solid var(--pj-rule);
+}
+
+.pj__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pj-space-3xs);
+  min-height: 44px;
+  padding-block: var(--pj-space-3xs);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--pj-ink-2);
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--pj-rule);
+  cursor: pointer;
+  /* gate 49 — affordance labels never wrap */
+  white-space: nowrap;
+  transition: color var(--pj-dur) var(--pj-ease-out),
+    border-color var(--pj-dur) var(--pj-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pj__cta:hover {
+    color: var(--pj-accent);
+    border-color: var(--pj-accent);
+  }
+  .pj__cta:hover .pj__cta-arrow {
+    translate: 2px -2px;
+  }
+}
+
+.pj__cta:focus-visible {
+  outline: 2px solid var(--pj-focus);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.pj__cta:active {
+  transform: translateY(1px);
+}
+
+.pj__cta:disabled,
+.pj__cta[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pj__cta-arrow {
+  flex: 0 0 auto;
+  transition: translate var(--pj-dur) var(--pj-ease-out);
+}
+
+/* ── Frame — nothing overlays it but the blocked-state veil ───────────── */
+.pj__framewrap {
+  grid-area: frame;
+  min-width: 0;
+}
+
+.pj__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--pj-radius);
+  border: 1px solid var(--pj-rule);
+  background: var(--pj-paper-2);
+  isolation: isolate;
+  /* horizontal swipe belongs to the frame; vertical scroll stays with the page */
+  touch-action: pan-y;
+}
+
+@media (max-width: 37.5rem) {
+  .pj__frame {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+.pj__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: opacity var(--pj-dur) var(--pj-ease-out);
+}
+
+.pj__poster[data-hidden="true"] {
+  opacity: 0;
+}
+
+/* ── Loading choreography ─────────────────────────────────────────────────
+   Switching projects should read as one deliberate motion: the incoming
+   poster settles back and softens, an indeterminate bar sweeps while the
+   frame negotiates, then the live site resolves over it. Nothing blinks. */
+.pj__frame[data-state="loading"] .pj__poster,
+.pj__frame[data-state="slow"] .pj__poster {
+  opacity: 0.42;
+  filter: blur(2px) saturate(0.5);
+  transform: scale(1.015);
+}
+
+.pj__poster {
+  transition:
+    opacity var(--pj-dur-slow) var(--pj-ease-out),
+    filter var(--pj-dur-slow) var(--pj-ease-out),
+    transform var(--pj-dur-slow) var(--pj-ease-out);
+}
+
+.pj__loader {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 3;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--pj-dur) var(--pj-ease-out);
+  pointer-events: none;
+}
+
+.pj__frame[data-state="loading"] .pj__loader,
+.pj__frame[data-state="slow"] .pj__loader {
+  opacity: 1;
+}
+
+.pj__loader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--pj-accent) 50%,
+    transparent 100%
+  );
+  animation: pj-sweep 1.15s var(--pj-ease-in-out) infinite;
+}
+
+@keyframes pj-sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(350%); }
+}
+
+/* rendered at desktop width then scaled down — a real site in miniature,
+   not a site squeezed into a phone breakpoint */
+.pj__live {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* pre-promote: Chrome defers rasterising transform-scaled iframes, which
+     read as the preview "popping in" a beat after Live shows */
+  will-change: transform;
+  /* +18px so the embedded page's own scrollbar lands past the clip edge */
+  width: calc((var(--pj-frame-w) + 18) * 1px);
+  height: calc(var(--pj-frame-w) * 0.625px);
+  border: 0;
+  transform-origin: 0 0;
+  transform: scale(calc(var(--pj-stage-w) / var(--pj-frame-w)));
+  opacity: 0;
+  transition: opacity var(--pj-dur) var(--pj-ease-out);
+}
+
+@media (max-width: 37.5rem) {
+  .pj__live {
+    height: calc(var(--pj-frame-w) * 0.75px);
+  }
+}
+
+.pj__live[data-loaded="true"] {
+  opacity: 1;
+}
+
+/* A film fills the frame the way a site preview does, but it is our own
+   media — no scaling trick needed, just cover the box. */
+.pj__film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+  opacity: 0;
+  transition: opacity var(--pj-dur-slow) var(--pj-ease-out);
+}
+
+.pj__film[data-loaded="true"] {
+  opacity: 1;
+}
+
+/* the same film in a slider tile — silent, decorative, never interactive */
+.pj__card-live[data-film="true"] {
+  width: 100%;
+  height: 100%;
+  transform: none;
+  object-fit: cover;
+}
+
+/* touch: display-only — trapping touch-scroll inside an iframe is miserable */
+@media (pointer: coarse) {
+  .pj__live {
+    pointer-events: none;
+  }
+}
+
+.pj__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: var(--pj-space-md);
+  background: linear-gradient(
+    180deg,
+    var(--pj-veil-top) 0%,
+    var(--pj-veil-bottom) 100%
+  );
+}
+
+.pj__overlay .pj__cta {
+  border-bottom-color: var(--pj-rule-2);
+}
+
+/* ── Slider ───────────────────────────────────────────────────────────── */
+.pj__nav {
+  grid-area: nav;
+  min-width: 0;
+}
+
+.pj__slidertop {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--pj-space-2xs);
+  border-top: 1px solid var(--pj-rule);
+}
+
+.pj__slider {
+  display: block;
+  min-width: 0;
+}
+
+/* the scroll container. Native overflow + snap gives trackpad and touch
+   momentum for free; the pointer handlers add the same feel for a mouse. */
+.pj__rail {
+  --pj-slide-w: 150;
+  display: flex;
+  gap: var(--pj-space-2xs);
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* room for the lift on hover so it isn't clipped by the scroller */
+  padding-block: 3px;
+  cursor: grab;
+  overscroll-behavior-x: contain;
+  /* slides emerge from and dissolve into the page instead of being clipped
+     by a hard container edge — the strip reads as part of the field */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+}
+
+.pj__rail::-webkit-scrollbar {
+  display: none;
+}
+
+.pj__rail[data-dragging="true"] {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  /* a drag must never select the labels underneath */
+  user-select: none;
+}
+
+@media (min-width: 60rem) {
+  .pj__rail {
+    --pj-slide-w: 220;
+  }
+}
+
+/* On a phone: narrower tiles so more than two are ever in view, and proximity
+   snapping instead of mandatory — mandatory grabs every tile as it passes,
+   which makes a long flick feel like it is fighting you. */
+@media (max-width: 37.5rem) {
+  .pj__rail {
+    --pj-slide-w: 124;
+    scroll-snap-type: x proximity;
+  }
+}
+
+/* ── Slide · 8 states ─────────────────────────────────────────────────── */
+.pj__item {
+  appearance: none;
+  font: inherit;
+  color: var(--pj-muted);
+  text-align: left;
+  cursor: inherit;
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: calc(var(--pj-slide-w) * 1px);
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  scroll-snap-align: center;
+  border: 1px solid var(--pj-rule);
+  border-radius: 8px;
+  background: var(--pj-paper-2);
+  transition: border-color var(--pj-dur) var(--pj-ease-out),
+    color var(--pj-dur) var(--pj-ease-out),
+    background-color var(--pj-dur) var(--pj-ease-out),
+    transform var(--pj-dur) var(--pj-ease-out),
+    opacity var(--pj-dur) var(--pj-ease-out);
+  /* unselected slides sit back so the active one reads as chosen */
+  opacity: 0.55;
+}
+
+.pj__card-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  min-height: 46px;
+  overflow: hidden;
+  background: var(--pj-paper-3);
+  /* inactive tiles sit back in the section's own colour; the active one
+     comes to full life. This is what stops eight foreign designs from
+     fighting each other in one strip. */
+  filter: saturate(0.35) brightness(0.72);
+  transition: filter var(--pj-dur) var(--pj-ease-out);
+}
+
+.pj__card-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: opacity var(--pj-dur) var(--pj-ease-out);
+}
+
+/* the running site, rendered at desktop width and scaled into the slide.
+   pointer-events off so drags and clicks reach the button underneath —
+   an iframe would otherwise swallow both. */
+.pj__card-live {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+  width: calc((var(--pj-frame-w) + 18) * 1px);
+  height: calc(var(--pj-frame-w) * 0.6875px);
+  border: 0;
+  transform-origin: 0 0;
+  transform: scale(calc(var(--pj-slide-w) / var(--pj-frame-w)));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--pj-dur) var(--pj-ease-out);
+}
+
+.pj__card-live[data-loaded="true"] {
+  opacity: 1;
+}
+
+/* feathers the bottom of the preview into the card's own surface, so the
+   site emerges from the page rather than sitting on top of it */
+.pj__card-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    oklch(0.13 0.008 275 / 0) 0%,
+    oklch(0.13 0.008 275 / 0.15) 42%,
+    oklch(0.13 0.008 275 / 0.78) 72%,
+    var(--pj-paper-2) 100%
+  );
+}
+
+/* projects with no thumbnail fall back to their numeral */
+.pj__card-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--pj-font-mono);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  color: var(--pj-muted);
+  background: var(--pj-paper-3);
+}
+
+/* the per-project mark — quiet, labels rather than decorates */
+.pj__card-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  color: var(--pj-ink);
+  opacity: 0.45;
+  filter: drop-shadow(0 1px 2px var(--pj-backdrop));
+  transition: opacity var(--pj-dur) var(--pj-ease-out),
+    color var(--pj-dur) var(--pj-ease-out);
+  pointer-events: none;
+}
+
+/* name + numeral ride on the veil — no separate caption band */
+.pj__card-foot {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: var(--pj-space-3xs);
+  padding: var(--pj-space-3xs) var(--pj-space-2xs) var(--pj-space-2xs);
+  min-width: 0;
+  pointer-events: none;
+}
+
+.pj__card-idx {
+  font-family: var(--pj-font-mono);
+  font-size: 0.5625rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  color: var(--pj-muted);
+  flex: 0 0 auto;
+  transition: color var(--pj-dur) var(--pj-ease-out);
+}
+
+.pj__item-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.pj__item-num {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pj__item:hover {
+    opacity: 1;
+    border-color: var(--pj-track);
+    color: var(--pj-ink-2);
+    transform: translateY(-2px);
+  }
+  .pj__item:hover .pj__card-thumb {
+    filter: saturate(0.75) brightness(0.9);
+  }
+  .pj__item:hover .pj__card-icon {
+    opacity: 0.8;
+  }
+}
+
+.pj__item:focus-visible {
+  outline: 2px solid var(--pj-focus);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.pj__item:active {
+  transform: translateY(0);
+}
+
+.pj__item[aria-selected="true"] {
+  opacity: 1;
+  border-color: var(--pj-accent);
+  background: var(--pj-paper-3);
+  color: var(--pj-ink);
+  box-shadow: 0 0 0 1px var(--pj-accent-dim), 0 10px 30px -12px var(--pj-backdrop);
+}
+
+.pj__item[aria-selected="true"] .pj__card-thumb {
+  filter: none;
+}
+
+.pj__item[aria-selected="true"] .pj__card-idx {
+  color: var(--pj-accent);
+}
+
+.pj__item[aria-selected="true"] .pj__card-icon {
+  color: var(--pj-accent);
+  opacity: 0.95;
+}
+
+.pj__item[disabled],
+.pj__item[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pj__arrow:hover {
+    color: var(--pj-ink);
+    border-color: var(--pj-accent-dim);
+    background: var(--pj-paper-2);
+  }
+}
+
+.pj__arrow:focus-visible {
+  outline: 2px solid var(--pj-focus);
+  outline-offset: 2px;
+}
+
+.pj__arrow:active {
+  transform: translateY(1px);
+}
+
+.pj__arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Fullscreen dialog ────────────────────────────────────────────────── */
+.pj__dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(100% - 1.5rem, 84rem);
+  height: min(100% - 1.5rem, 56rem);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--pj-rule);
+  border-radius: var(--pj-radius);
+  background: var(--pj-paper);
+  color: var(--pj-ink);
+  overflow: hidden;
+}
+
+.pj__dialog::backdrop {
+  background: var(--pj-backdrop);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.pj__dialog-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--pj-space-sm);
+  height: 48px;
+  padding-inline: var(--pj-space-xs) var(--pj-space-2xs);
+  border-bottom: 1px solid var(--pj-rule);
+}
+
+.pj__dialog-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pj-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.pj__dialog-url {
+  font-family: var(--pj-font-mono);
+  font-size: 0.6875rem;
+  color: var(--pj-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.pj__dialog-body {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 48px);
+  background: var(--pj-paper-2);
+}
+
+.pj__dialog-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pj__close {
+  appearance: none;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--pj-muted);
+  cursor: pointer;
+  transition: color var(--pj-dur) var(--pj-ease-out),
+    background-color var(--pj-dur) var(--pj-ease-out);
+}
+
+/* expands the hit target to 44px without changing the visual size */
+.pj__close::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pj__close:hover {
+    color: var(--pj-ink);
+    background: var(--pj-paper-3);
+  }
+}
+
+.pj__close:focus-visible {
+  outline: 2px solid var(--pj-focus);
+  outline-offset: 2px;
+}
+
+.pj__close:active {
+  transform: translateY(1px);
+}
+
+/* ── Reduced motion — spatial motion collapses to opacity ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .pj *,
+  .pj *::before,
+  .pj *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+  .pj__loader::after {
+    animation: none;
+  }
+  .pj__item:hover,
+  .pj__item:active,
+  .pj__step:active,
+  .pj__cta:active,
+  .pj__close:active {
+    transform: none;
+  }
+  .pj__cta:hover .pj__cta-arrow {
+    translate: 0;
+  }
+}
+
+/* ── Auto-advance ─────────────────────────────────────────────────────────
+   The progress bar is the clock. Its animationend fires the advance, so the
+   bar and the rotation cannot drift apart, and animation-play-state pauses
+   both at once. WCAG 2.2.2 needs a stop mechanism for anything auto-updating
+   past 5s — hover, focus, a hidden tab and a scrolled-away section all pause
+   it, a manual pick turns it off for good, and the toggle below is explicit. */
+.pj__progress {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--pj-accent);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  animation: pj-progress var(--pj-interval) linear forwards;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes pj-progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.pj[data-autoplay="paused"] .pj__progress {
+  animation-play-state: paused;
+}
+
+/* ── Autoplay toggle ──────────────────────────────────────────────────── */
+.pj__countrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--pj-space-sm);
+  margin: 0 0 var(--pj-space-2xs);
+  padding-top: var(--pj-space-2xs);
+  border-top: 1px solid var(--pj-rule);
+}
+
+.pj__countrow .pj__count {
+  margin: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.pj__toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pj-space-3xs);
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-family: var(--pj-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pj-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--pj-dur) var(--pj-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pj__toggle:hover {
+    color: var(--pj-ink-2);
+  }
+}
+
+.pj__toggle:focus-visible {
+  outline: 2px solid var(--pj-focus);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.pj__toggle:active {
+  transform: translateY(1px);
+}
+
+.pj__toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* reduced motion: no rotation at all, and the bar never animates */
+@media (prefers-reduced-motion: reduce) {
+  .pj__progress {
+    display: none;
+  }
+  .pj__toggle:active {
+    transform: none;
+  }
+}

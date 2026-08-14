@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { Search, ArrowUpRight, Hash, Briefcase, Link2, Sparkles, Copy, Check } from "lucide-react";
+import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -89,7 +90,10 @@ export function CommandPalette() {
       // Cmd+K to toggle
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        setOpen((prev) => {
+          soundEngine.play(prev ? "close" : "open");
+          return !prev;
+        });
         setQuery("");
         setSelectedIndex(0);
         return;
@@ -98,15 +102,19 @@ export function CommandPalette() {
       if (!open) return;
 
       if (e.key === "Escape") {
+        soundEngine.play("close");
         setOpen(false);
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
+        soundEngine.playThrottled("tick", 80);
         setSelectedIndex((prev) => Math.min(prev + 1, filtered.length - 1));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
+        soundEngine.playThrottled("tick", 80);
         setSelectedIndex((prev) => Math.max(prev - 1, 0));
       } else if (e.key === "Enter" && filtered[selectedIndex]) {
         e.preventDefault();
+        soundEngine.play("click");
         filtered[selectedIndex].action();
       }
     };
@@ -173,12 +181,12 @@ export function CommandPalette() {
             ref={backdropRef}
             className="absolute inset-0"
             style={{ background: "rgba(5, 5, 8, 0.8)" }}
-            onClick={() => setOpen(false)}
+            onClick={() => { soundEngine.play("close"); setOpen(false); }}
           />
 
           <div
             ref={modalRef}
-            className="relative mx-auto mt-[18vh] w-[90vw] max-w-lg rounded-xl overflow-hidden"
+            className="relative mx-auto mt-[10vh] md:mt-[18vh] w-[90vw] max-w-lg rounded-xl overflow-hidden"
             style={{
               background: "#0a0a0f",
               border: "1px solid rgba(255,255,255,0.08)",
@@ -186,7 +194,7 @@ export function CommandPalette() {
             }}
           >
             {/* Search input */}
-            <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="flex items-center gap-3 px-4 py-3 min-h-[44px]" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <Search size={14} className="text-white/20 shrink-0" />
               <input
                 ref={inputRef}
@@ -220,7 +228,7 @@ export function CommandPalette() {
                     return (
                       <button
                         key={item.id}
-                        onClick={item.action}
+                        onClick={() => { soundEngine.play("click"); item.action(); }}
                         onMouseEnter={() => setSelectedIndex(currentIndex)}
                         className="w-full flex items-center gap-3 px-4 py-2 text-left transition-colors duration-100"
                         style={{

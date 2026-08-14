@@ -198,6 +198,72 @@
   50% { transform: translateY(8px); }
 }
 
+/* ───── Deep Dive Mode ───── */
+
+/* Noise texture via SVG data URI -- no external dependency */
+.dd-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* Browser mockup layered shadow */
+.dd-browser-shadow {
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 40px 80px rgba(0, 0, 0, 0.25);
+}
+
+/* CTA button shimmer edge */
+.dd-cta {
+  overflow: hidden;
+}
+.dd-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Deep dive smooth scroll */
+.dd-smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll hint pulse */
+.dd-scroll-hint {
+  animation: dd-scroll-pulse 2s ease-in-out infinite;
+}
+@keyframes dd-scroll-pulse {
+  0%, 100% { opacity: 0.2; transform: scaleY(1); }
+  50% { opacity: 0.6; transform: scaleY(1.3); }
+}
+
+/* Deep dive entrance */
+.deep-dive {
+  animation: dd-fade-in 0.5s ease-out;
+}
+
+@keyframes dd-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -205,4 +271,84 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Root overflow guard.
+   Decorative elements deliberately bleed past the content column (the cake in
+   intro-text sits at -right-8, the scroll-timeline note at -right-8/-right-16).
+   On narrow viewports that bleed pushed the document wider than the viewport
+   and produced a horizontal scrollbar. `clip` rather than `hidden` so
+   position: sticky keeps working inside. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* ── Hero foreground stack (ridge + cut-out figure) ──────────────────────
+   The source art is landscape (1376x768). On desktop it fills the layer the
+   same way it always did. On mobile, cover-cropping a landscape frame into a
+   portrait viewport would scale the figure to ~3x and clip it, so instead the
+   whole composition is scaled past viewport width and pinned to the bottom
+   edge — the figure keeps a believable size standing on the ridge, and the
+   background video fills the sky above it.
+   --fg-scale is the one dial: raise it to make the figure bigger. */
+.parallax__fg {
+  position: absolute;
+  inset: 0;
+}
+
+.parallax__fg-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* no object-position — desktop keeps the original default centring */
+}
+
+/* The 3px nudge that aligns the figure to the ridge on desktop. It used to be
+   an inline style, which silently beat the mobile offset below — scoped to the
+   desktop range so the two can't collide. */
+@media (min-width: 768px) {
+  .parallax__fg video.parallax__fg-media {
+    top: 3px;
+  }
+}
+
+@media (max-width: 767px) {
+  .parallax__fg {
+    --fg-scale: 170%;
+    inset: auto auto 0 50%;
+    width: var(--fg-scale);
+    /* NOT the source's 1376/768 — this is the *visible crop* (source rows
+       4%..94%), so the media below can sit at its natural aspect and stay
+       undistorted while its edges fall outside the box. */
+    aspect-ratio: 1376 / 691;
+    height: auto;
+    translate: -50% 0;
+    overflow: hidden;
+  }
+
+  /* Desktop hides this video's frame edges for free: object-fit: cover crops
+     ~170px off the top there. On mobile the edge would land on screen, and iOS
+     bleeds the RGB (sky — hence a blue line) along the texture edge even where
+     alpha is zero, which then tracks the parallax. So push both edges out of
+     the box: the top 4% (the figure's raised hands peak at 7.1%, so there is
+     3% of clearance) and the bottom 6% where the generator watermark sits.
+     111.2% x 100% is exactly the media's natural aspect — no distortion. */
+  .parallax__fg-media {
+    object-fit: fill;
+    height: 111.2%;
+    top: -4.45%;
+  }
+}
+
+/* iOS composites a scaled video inside a hardware layer with occasional 1px
+   edge seams. Bleeding the element a hair past its box puts any such edge
+   outside the visible area. Invisible otherwise — object-fit still crops. */
+.parallax__bleed {
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  top: -1px;
+  left: -1px;
 }

@@ -1,0 +1,263 @@
+/* Hallmark · genre: editorial · same system as project-stage.css
+ * The Toolbox reads as a hairline accordion, not a 3D box: mono labels,
+ * tabular counts, rules instead of bevels, one warm accent on the open row.
+ *
+ * Tokens mirror .pj deliberately so the two sections cannot drift. If a third
+ * section ever needs them, lift this block into globals.css and share it.
+ */
+.tb {
+  --tb-paper: oklch(0.13 0.008 275);
+  --tb-paper-2: oklch(0.165 0.009 275);
+  --tb-paper-3: oklch(0.205 0.01 275);
+
+  --tb-ink: oklch(0.97 0.005 275);
+  --tb-ink-2: oklch(0.78 0.004 275);
+  --tb-muted: oklch(0.62 0.006 275);
+
+  --tb-rule: oklch(0.98 0.006 275 / 0.09);
+  --tb-rule-2: oklch(0.98 0.006 275 / 0.055);
+
+  --tb-accent: oklch(0.79 0.145 68);
+  --tb-accent-dim: oklch(0.79 0.145 68 / 0.16);
+  --tb-focus: oklch(0.82 0.13 68);
+
+  --tb-font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --tb-font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  --tb-space-3xs: 0.25rem;
+  --tb-space-2xs: 0.5rem;
+  --tb-space-xs: 0.75rem;
+  --tb-space-sm: 1rem;
+  --tb-space-md: 1.5rem;
+  --tb-space-lg: 2rem;
+
+  --tb-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --tb-dur: 220ms;
+
+  position: relative;
+  font-family: var(--tb-font-display);
+  /* the 80px block padding every other section on the page uses */
+  padding-block: 5rem;
+  overflow-anchor: none;
+}
+
+.tb__wrap {
+  /* the site-wide container, same as the work section */
+  width: min(90vw, 64rem);
+  margin-inline: auto;
+  padding-inline: var(--tb-space-sm);
+}
+
+@media (min-width: 48rem) {
+  .tb__wrap {
+    padding-inline: var(--tb-space-md);
+  }
+}
+
+/* ── Section head — centred at 48px like every sibling section ─────────── */
+.tb__head {
+  margin-bottom: var(--tb-space-lg);
+  text-align: center;
+}
+
+.tb__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.6rem + 2.2vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  color: var(--tb-ink);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.tb__lede {
+  margin: var(--tb-space-xs) auto 0;
+  max-width: 46ch;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--tb-muted);
+}
+
+/* ── The list ─────────────────────────────────────────────────────────── */
+.tb__list {
+  border-top: 1px solid var(--tb-rule);
+}
+
+.tb__row {
+  border-bottom: 1px solid var(--tb-rule);
+}
+
+/* ── Row toggle · 8 states ────────────────────────────────────────────── */
+.tb__toggle {
+  appearance: none;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--tb-space-sm);
+  padding: var(--tb-space-sm) 0;
+  min-height: 44px;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--tb-muted);
+  transition: color var(--tb-dur) var(--tb-ease-out);
+}
+
+.tb__label {
+  font-family: var(--tb-font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  transition: color var(--tb-dur) var(--tb-ease-out);
+}
+
+.tb__count {
+  font-family: var(--tb-font-mono);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--tb-muted);
+  opacity: 0.7;
+}
+
+.tb__chev {
+  flex: 0 0 auto;
+  color: var(--tb-muted);
+  transition: transform var(--tb-dur) var(--tb-ease-out),
+    color var(--tb-dur) var(--tb-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tb__toggle:hover {
+    color: var(--tb-ink-2);
+  }
+  .tb__toggle:hover .tb__label {
+    color: var(--tb-ink-2);
+  }
+  .tb__toggle:hover .tb__chev {
+    color: var(--tb-ink-2);
+  }
+}
+
+.tb__toggle:focus-visible {
+  outline: 2px solid var(--tb-focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.tb__toggle:active {
+  opacity: 0.8;
+}
+
+.tb__toggle[aria-expanded="true"] {
+  color: var(--tb-ink);
+}
+
+.tb__toggle[aria-expanded="true"] .tb__label {
+  color: var(--tb-accent);
+}
+
+.tb__toggle[aria-expanded="true"] .tb__chev {
+  transform: rotate(180deg);
+  color: var(--tb-accent);
+}
+
+.tb__toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Panel ────────────────────────────────────────────────────────────── */
+.tb__panel {
+  overflow: hidden;
+}
+
+.tb__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: var(--tb-space-2xs);
+  padding-bottom: var(--tb-space-md);
+}
+
+/* ── Tool card — the slide treatment from the work section ────────────── */
+.tb__tool {
+  display: flex;
+  align-items: center;
+  gap: var(--tb-space-2xs);
+  min-width: 0;
+  padding: var(--tb-space-2xs) var(--tb-space-xs);
+  border: 1px solid var(--tb-rule);
+  border-radius: 8px;
+  background: var(--tb-paper-2);
+  transition: border-color var(--tb-dur) var(--tb-ease-out),
+    background-color var(--tb-dur) var(--tb-ease-out),
+    transform var(--tb-dur) var(--tb-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tb__tool:hover {
+    border-color: var(--tb-accent-dim);
+    background: var(--tb-paper-3);
+    transform: translateY(-2px);
+  }
+  .tb__tool:hover .tb__tool-logo {
+    opacity: 1;
+  }
+}
+
+.tb__tool-logo {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  opacity: 0.75;
+  transition: opacity var(--tb-dur) var(--tb-ease-out);
+}
+
+.tb__tool-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tb__tool-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--tb-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tb__tool-note {
+  font-family: var(--tb-font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tb-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb *,
+  .tb *::before,
+  .tb *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 150ms !important;
+  }
+  .tb__tool:hover {
+    transform: none;
+  }
+}

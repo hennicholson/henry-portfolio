@@ -9,7 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 export function VoiceCTA() {
-  const { startConversation, status } = useVoice();
+  const { startConversation, status, warm } = useVoice();
   const ref = useRef<HTMLDivElement>(null);
   const isConnecting = status === "connecting";
 
@@ -40,7 +40,7 @@ export function VoiceCTA() {
         }
       `}</style>
       <div ref={ref} className="flex justify-center py-6">
-        <button
+        <button onPointerEnter={warm}
           onClick={() => startConversation()}
           disabled={isConnecting || status === "connected"}
           className="group relative inline-flex items-center gap-2.5 px-6 py-3 rounded-full transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 overflow-hidden"

@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Twitter, Linkedin, Mail, ArrowUpRight } from "lucide-react";
+import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -104,6 +105,7 @@ export function ConnectSection() {
       if (atBottom) {
         revealed = true;
         setSecretVisible(true);
+        soundEngine.play("chime");
         if (secretRef.current) {
           gsap.fromTo(secretRef.current, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" });
         }
@@ -114,7 +116,7 @@ export function ConnectSection() {
   }, []);
 
   return (
-    <footer ref={sectionRef} className="relative py-12 md:py-16 overflow-hidden" data-section="footer">
+    <footer ref={sectionRef} className="relative py-10 md:py-16 overflow-hidden" data-section="footer">
       {/* Trailing spotlight */}
       <div
         ref={spotlightRef}
@@ -126,7 +128,7 @@ export function ConnectSection() {
           willChange: "transform",
         }}
       />
-      <div className="w-[90vw] max-w-3xl mx-auto px-6 relative">
+      <div className="w-[90vw] max-w-3xl mx-auto px-4 md:px-6 relative">
         <div className="text-center mb-10" data-animate>
           <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
             What&apos;s Next?
@@ -182,6 +184,7 @@ export function ConnectSection() {
               data-magnetic
               className="group flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
               onMouseEnter={(e) => {
+                soundEngine.playThrottled("cardHover", 200);
                 const icon = e.currentTarget.querySelector("[data-social-icon]") as HTMLElement;
                 if (icon) hoverAnim(icon);
               }}

@@ -3,6 +3,8 @@
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { soundEngine } from "@/lib/sounds";
+import { useVideoVisibility } from "@/lib/use-video-visibility";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -41,7 +43,7 @@ const milestones = [
     year: "2026",
     age: "21",
     title: "Building the Future",
-    body: "Creating LaunchPad, Skinny Studio, and Slop.design while studying marketing at the University of San Diego. Learning in public, no gatekeeping.",
+    body: "Creating LaunchPad and Skinny while studying marketing at the University of San Diego. Learning in public, no gatekeeping.",
     quote: "The work is never done \u2014 and that\u2019s the point.",
     annotation: "\u2190 you are here",
   },
@@ -49,6 +51,7 @@ const milestones = [
 
 export function ScrollTimeline() {
   const sectionRef = useRef<HTMLElement>(null);
+  useVideoVisibility(sectionRef);
   const headerRef = useRef<HTMLDivElement>(null);
   const lineTrackRef = useRef<HTMLDivElement>(null);
   const lineFillRef = useRef<HTMLDivElement>(null);
@@ -103,6 +106,7 @@ export function ScrollTimeline() {
             });
             const dot = dotRefs.current[i];
             if (dot) {
+              soundEngine.playThrottled("milestone", 500);
               gsap.to(dot, {
                 scale: 1.5,
                 backgroundColor: "#fff",
@@ -112,6 +116,7 @@ export function ScrollTimeline() {
               });
             }
             // Quote word-by-word reveal
+            soundEngine.playThrottled("typing", 400);
             const quoteWords = el.querySelectorAll("[data-quote-word]");
             const cursor = el.querySelector("[data-quote-cursor]");
             if (cursor) {
@@ -222,7 +227,7 @@ export function ScrollTimeline() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative pt-0 pb-14 md:pb-20 overflow-visible" data-section="journey">
+    <section ref={sectionRef} className="relative pt-0 pb-10 md:pb-20 overflow-visible" data-section="journey">
       <style jsx global>{`
         @keyframes journey-breathe {
           0%, 100% { opacity: 0.06; }
@@ -248,7 +253,7 @@ export function ScrollTimeline() {
         <div className="absolute inset-0 bg-[#050508]/35" />
       </div>
 
-      <div ref={headerRef} className="relative w-[90vw] max-w-5xl mx-auto px-6 mb-10 text-center">
+      <div ref={headerRef} className="relative w-[90vw] max-w-5xl mx-auto px-4 md:px-6 mb-10 text-center">
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
           The Journey
         </h2>
@@ -257,7 +262,7 @@ export function ScrollTimeline() {
         </p>
       </div>
 
-      <div className="relative w-[90vw] max-w-5xl mx-auto px-6">
+      <div className="relative w-[90vw] max-w-5xl mx-auto px-4 md:px-6">
         <div className="relative">
           <div
             ref={lineTrackRef}
@@ -279,7 +284,7 @@ export function ScrollTimeline() {
               <div
                 key={m.year}
                 ref={(el) => { entryRefs.current[i] = el; }}
-                className="relative pl-8 md:pl-24"
+                className="relative pl-6 md:pl-24"
               >
                 <div
                   ref={(el) => { dotRefs.current[i] = el; }}

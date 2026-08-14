@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -56,6 +57,7 @@ export function SectionTransition({ variant = "subtle" }: SectionTransitionProps
               pauseTimer.current = setTimeout(() => {
                 if (!msgRef.current || shown.current) return;
                 shown.current = true;
+                soundEngine.play("reveal");
                 gsap.to(msgRef.current, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
                 // Auto-hide after 2.5s
                 setTimeout(() => {

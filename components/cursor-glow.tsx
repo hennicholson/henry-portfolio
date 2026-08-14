@@ -28,17 +28,38 @@ export function CursorGlow() {
     const observer = new MutationObserver(setupMagnetic);
     observer.observe(document.body, { childList: true, subtree: true });
 
-    const handleMove = (e: MouseEvent) => {
-      xTo(e.clientX);
-      yTo(e.clientY);
+    /* getBoundingClientRect on every magnetic element per mousemove forces a
+       layout each event — the classic jank source. Rects are cached and only
+       recomputed when scroll/resize invalidates them; moves are folded to one
+       per frame. */
+    const rectCache = new Map<Element, { cx: number; cy: number }>();
+    let cacheDirty = true;
+    const invalidate = () => { cacheDirty = true; };
+    window.addEventListener("scroll", invalidate, { passive: true });
+    window.addEventListener("resize", invalidate, { passive: true });
 
-      // Magnetic proximity
+    let queued = false;
+    let lastX = 0, lastY = 0;
+
+    const applyMove = () => {
+      queued = false;
+      if (cacheDirty) {
+        rectCache.clear();
+        magneticEls.current.forEach((_t, el) => {
+          const r = el.getBoundingClientRect();
+          rectCache.set(el, { cx: r.left + r.width / 2, cy: r.top + r.height / 2 });
+        });
+        cacheDirty = false;
+      }
+      xTo(lastX);
+      yTo(lastY);
+
       magneticEls.current.forEach((tweens, magEl) => {
-        const rect = magEl.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dx = e.clientX - cx;
-        const dy = e.clientY - cy;
+        const c = rectCache.get(magEl);
+        if (!c) return;
+        const { cx, cy } = c;
+        const dx = lastX - cx;
+        const dy = lastY - cy;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const radius = 100;
 
@@ -53,9 +74,20 @@ export function CursorGlow() {
       });
     };
 
-    window.addEventListener("mousemove", handleMove);
+    const handleMove = (e: MouseEvent) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(applyMove);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMove, { passive: true });
     return () => {
       window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("scroll", invalidate);
+      window.removeEventListener("resize", invalidate);
       observer.disconnect();
       // Reset all magnetic elements
       magneticEls.current.forEach((_, magEl) => {

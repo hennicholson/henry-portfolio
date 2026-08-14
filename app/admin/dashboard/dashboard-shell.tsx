@@ -6,8 +6,9 @@ import { LeadsTable } from "./leads-table";
 import { ProjectsEditor } from "./projects-editor";
 import { ToolsEditor } from "./tools-editor";
 import { TestimonialsEditor } from "./testimonials-editor";
+import { GuidesEditor } from "./guides-editor";
 
-const tabs = ["Leads", "Projects", "Tools", "Testimonials"] as const;
+const tabs = ["Leads", "Projects", "Tools", "Testimonials", "Guides"] as const;
 type Tab = (typeof tabs)[number];
 
 export function DashboardShell() {
@@ -71,6 +72,7 @@ export function DashboardShell() {
         {activeTab === "Projects" && <ProjectsEditor />}
         {activeTab === "Tools" && <ToolsEditor />}
         {activeTab === "Testimonials" && <TestimonialsEditor />}
+        {activeTab === "Guides" && <GuidesEditor />}
       </div>
     </div>
   );

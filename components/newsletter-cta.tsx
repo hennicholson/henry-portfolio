@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -53,6 +54,7 @@ export function NewsletterCTA() {
                 duration: 0.03,
                 delay: 0.3 + i * 0.045,
                 ease: "none",
+                onStart: i % 3 === 0 ? () => soundEngine.playThrottled("typing", 100) : undefined,
               });
             });
           }
@@ -91,6 +93,7 @@ export function NewsletterCTA() {
     if (!submitted || !sealRef.current) return;
     const seal = sealRef.current;
 
+    soundEngine.play("chime");
     gsap.fromTo(seal,
       { opacity: 0, scale: 1.6, rotation: -15 },
       { opacity: 1, scale: 1, rotation: 0, duration: 0.3, ease: "back.out(1.4)" }
@@ -136,6 +139,7 @@ export function NewsletterCTA() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || submitting || submitted) return;
+    soundEngine.play("click");
     setSubmitting(true);
 
     try {
@@ -157,8 +161,8 @@ export function NewsletterCTA() {
   };
 
   return (
-    <section ref={sectionRef} className="relative py-14 md:py-20">
-      <div className="w-[90vw] max-w-5xl mx-auto px-6">
+    <section ref={sectionRef} className="relative py-10 md:py-20">
+      <div className="w-[90vw] max-w-5xl mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 items-center">
           {/* Left — CTA */}
           <div ref={leftRef} className="md:col-span-3">

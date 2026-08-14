@@ -3,6 +3,8 @@
 import { useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { soundEngine } from "@/lib/sounds";
+import { useVideoVisibility } from "@/lib/use-video-visibility";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,6 +19,7 @@ const drawAnnotations: Record<string, "circle" | "wavy" | "straight"> = {
 
 export function IntroText() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  useVideoVisibility(sectionRef);
   const containerRef = useRef<HTMLDivElement>(null);
   const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const signatureRef = useRef<HTMLDivElement>(null);
@@ -29,6 +32,7 @@ export function IntroText() {
   const handleCakeClick = useCallback(() => {
     if (cakeClicked.current || !cakeRef.current) return;
     cakeClicked.current = true;
+    soundEngine.play("pop");
 
     const rect = cakeRef.current.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -115,7 +119,7 @@ export function IntroText() {
         if (parent) {
           const drawEl = parent.querySelector("[data-draw]");
           if (drawEl) {
-            tl.to(drawEl, { strokeDashoffset: 0, duration: 3, ease: "power2.out" }, i * 0.5 + 0.3);
+            tl.to(drawEl, { strokeDashoffset: 0, duration: 3, ease: "power2.out", onStart: () => soundEngine.playThrottled("shimmer", 800) }, i * 0.5 + 0.3);
           }
         }
       });
@@ -133,8 +137,8 @@ export function IntroText() {
   }, [thirteenIndex]);
 
   return (
-    <section ref={sectionRef} className="relative py-14 md:py-20" data-section="story">
-      <div ref={containerRef} className="w-[90vw] max-w-4xl mx-auto px-6 relative">
+    <section ref={sectionRef} className="relative py-10 md:py-20" data-section="story">
+      <div ref={containerRef} className="w-[90vw] max-w-4xl mx-auto px-4 md:px-6 relative">
         <video
           ref={cakeRef}
           src="/cake-spin.webm"
@@ -145,7 +149,7 @@ export function IntroText() {
         />
 
         <p
-          className="flex flex-wrap text-2xl md:text-4xl lg:text-5xl leading-[1.4] md:leading-[1.35] relative z-[2]"
+          className="flex flex-wrap text-xl sm:text-2xl md:text-4xl lg:text-5xl leading-[1.4] md:leading-[1.35] relative z-[2]"
           style={{ fontFamily: "var(--font-caveat)" }}
         >
           {words.map((word, i) => {
