@@ -95,10 +95,10 @@ const PROJECT_POINTS: Record<string, string[]> = {
  *  that browsing the gallery doesn't get interrupted mid-scroll. */
 const IDLE_MS = 9000;
 
-/** Slides kept live around the selected one; the rest stay as stills.
- *  Radius 1 = at most three running sites in the strip. Radius 2 meant five
- *  full websites executing simultaneously, which is where the lag lived. */
-const LIVE_RADIUS = 1;
+/** Idle rotation shows the next project's poster at once but only mounts its
+ *  live site once the selection has held this long, so passing rotations
+ *  cost nothing. Manual picks skip the wait. */
+const DWELL_MS = 2000;
 
 /** How long before we admit the preview is taking a while. Never a kill-timer. */
 const SLOW_AFTER_MS = 8000;
@@ -187,6 +187,10 @@ export function ProjectStage({ projects }: ProjectStageProps) {
 
   const [selected, setSelected] = useState(0);
   const [armed, setArmed] = useState(false);
+  /* false right after an idle rotation lands, until DWELL_MS passes */
+  const [settled, setSettled] = useState(true);
+  const dwellTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (dwellTimer.current) clearTimeout(dwellTimer.current); }, []);
   /* Both track a URL rather than a boolean, so switching projects invalidates
      them without an effect having to reset anything. */
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
@@ -216,16 +220,6 @@ export function ProjectStage({ projects }: ProjectStageProps) {
       if (idleTimer.current) clearTimeout(idleTimer.current);
     };
   }, []);
-
-  const finePointer = useSyncExternalStore(
-    (cb) => {
-      const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-      mq.addEventListener("change", cb);
-      return () => mq.removeEventListener("change", cb);
-    },
-    () => window.matchMedia("(hover: hover) and (pointer: fine)").matches,
-    () => false,
-  );
 
   const prefersReducedMotion = useSyncExternalStore(
     reducedMotion.subscribe,
@@ -299,10 +293,10 @@ export function ProjectStage({ projects }: ProjectStageProps) {
         still free to land afterwards, which is what the old 5s abort got
         wrong — it permanently downgraded previews that simply loaded slowly. */
   useEffect(() => {
-    if (!armed || !frameable || !target) return;
+    if (!armed || !settled || !frameable || !target) return;
     const timer = setTimeout(() => setSlowSrc(target), SLOW_AFTER_MS);
     return () => clearTimeout(timer);
-  }, [armed, frameable, target]);
+  }, [armed, settled, frameable, target]);
 
   /* React does not always reflect `muted` onto the element before the first
      play attempt, and a muted autoplay that loses the race just stays paused.
@@ -375,6 +369,13 @@ export function ProjectStage({ projects }: ProjectStageProps) {
       selectedRef.current = next;
       holdScroll();
       setSelected(next);
+      if (dwellTimer.current) clearTimeout(dwellTimer.current);
+      if (opts.manual) {
+        setSettled(true);
+      } else {
+        setSettled(false);
+        dwellTimer.current = setTimeout(() => setSettled(true), DWELL_MS);
+      }
       soundEngine.play("click");
       if (opts.manual) deferAutoplay();
       if (opts.focus) {
@@ -476,7 +477,9 @@ export function ProjectStage({ projects }: ProjectStageProps) {
     [select, projects.length],
   );
 
-  const frameState: FrameState = videoSrc
+  const frameState: FrameState = !settled
+    ? "idle"
+    : videoSrc
     ? loadedSrc === videoSrc
       ? "live"
       : "loading"
@@ -665,7 +668,7 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                 />
               )}
 
-              {videoSrc && (
+              {videoSrc && settled && (
                 <video
                   key={videoSrc}
                   ref={stageVideoRef}
@@ -682,7 +685,7 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                 />
               )}
 
-              {armed && frameable && target && (
+              {armed && settled && frameable && target && (
                 <iframe
                   key={target}
                   className="pj__live"
@@ -749,16 +752,10 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                 onPointerLeave={endDrag}
               >
                 {projects.map((project, index) => {
-                  const distance = Math.abs(index - selected);
-                  const preview = previewTarget(project);
-                  const tileVideo = PROJECT_VIDEOS[project.id];
-                  /* Live tiles only while the section is on screen, and only
-                     for mouse users — on touch they are display-only posters,
-                     so running real sites inside them was pure cost. */
-                  const showLive =
-                    !tileVideo && armed && inView && finePointer &&
-                    distance <= LIVE_RADIUS && isFrameable(project) && preview;
-                  const showTileVideo = tileVideo && armed && inView && distance <= LIVE_RADIUS;
+                  /* Tiles are posters only. They used to run the selected site
+                     and both neighbours live (the selected one twice, counting
+                     the stage), which was most of the section's network and
+                     decode cost for a 218px miniature. */
                   const Icon = PROJECT_ICONS[project.id] ?? Globe;
 
                   return (
@@ -800,35 +797,6 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                           <span className="pj__card-fallback" aria-hidden="true">
                             {String(index + 1).padStart(2, "0")}
                           </span>
-                        )}
-                        {showTileVideo && (
-                          <video
-                            className="pj__card-live"
-                            src={tileVideo}
-                            poster={project.thumbnail ?? undefined}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            preload="metadata"
-                            aria-hidden="true"
-                            tabIndex={-1}
-                            data-loaded="true"
-                            data-film="true"
-                          />
-                        )}
-                        {showLive && (
-                          <iframe
-                            className="pj__card-live"
-                            src={preview}
-                            title=""
-                            aria-hidden="true"
-                            tabIndex={-1}
-                            data-loaded="true"
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                            sandbox="allow-scripts allow-same-origin"
-                          />
                         )}
                         <span className="pj__card-veil" aria-hidden="true" />
                         <Icon className="pj__card-icon" size={13} aria-hidden="true" />
