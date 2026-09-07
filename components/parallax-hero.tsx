@@ -299,7 +299,9 @@ export function ParallaxHero() {
     const layers = [
       { layer: "1", yPercent: 70 },
       { layer: "2", yPercent: 55 },
-      { layer: "3", yPercent: 40 },
+      /* v2: the name counter-scrolls (past 100% = drifts down against the page)
+         so it closes in on the figure as he rises with the page. */
+      { layer: "3", yPercent: HERO_VERSION === 2 ? 115 : 40 },
       { layer: "4", yPercent: 10 },
     ];
 
