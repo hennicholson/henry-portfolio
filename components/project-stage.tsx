@@ -671,7 +671,14 @@ export function ProjectStage({ projects }: ProjectStageProps) {
               {videoSrc && settled && (
                 <video
                   key={videoSrc}
-                  ref={stageVideoRef}
+                  ref={(el) => {
+                    stageVideoRef.current = el;
+                    /* The server-rendered element starts downloading before
+                       hydration attaches onLoadedData, so loadeddata can fire
+                       with nobody listening and the frame stays "loading"
+                       with the loader over a playing reel. Catch up here. */
+                    if (el && el.readyState >= 2) setLoadedSrc(videoSrc);
+                  }}
                   className="pj__film"
                   src={videoSrc}
                   poster={active.thumbnail ?? undefined}
