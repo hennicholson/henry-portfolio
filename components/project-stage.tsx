@@ -782,7 +782,7 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                         event.currentTarget.focus({ preventScroll: true });
                       }}
                     >
-                      {index === selected && rotating && (
+                      {index === selected && rotating && settled && (
                         <span
                           key={selected}
                           className="pj__progress"
