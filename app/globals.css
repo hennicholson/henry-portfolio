@@ -379,15 +379,11 @@ body {
   );
 }
 
-/* v2 look. Both videos were bright against the dark page; a filter on the media
-   (not an overlay, so the name stays untouched) brings them down to the same
-   dark wash the Journey background uses. The title layer centres in the
-   viewport rather than the hero, which runs taller than the fold on wide
-   screens and was leaving the name ~62% down the screen. */
-.parallax__header[data-hero-v2] [data-parallax-layer="1"],
-.parallax__fg[data-hero-v2] video.parallax__fg-media {
-  filter: brightness(0.68) contrast(1.06) saturate(0.85);
-}
+/* v2 look. The dark wash (brightness .68, contrast 1.06, saturation .85) is
+   baked into the v2 media files. It was a CSS filter on the videos, which
+   Safari mishandles on <video> (the hero went blank on iPhone). The title
+   layer centres in the viewport rather than the hero, which runs taller than
+   the fold on wide screens and was leaving the name ~62% down the screen. */
 .parallax__header[data-hero-v2] .parallax__layer-title--ghost {
   opacity: 0.2;
 }
@@ -508,4 +504,5 @@ body {
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.5);
 }
+
 

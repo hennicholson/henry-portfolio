@@ -20,6 +20,7 @@ const HERO = HERO_VERSION === 2
       bgMobilePoster: "/hero-v2-bg-mobile.jpg",
       figureWebm: "/hero-v2-figure.webm",
       figureHevc: "/hero-v2-figure-alpha.mp4",
+      figurePoster: "/hero-v2-figure-poster.webp",
     }
   : {
       bgDesktop: "/hero-v1-bg.mp4",
@@ -28,6 +29,7 @@ const HERO = HERO_VERSION === 2
       bgMobilePoster: "/hero-v1-bg-mobile.jpg",
       figureWebm: "/hero-v1-figure.webm",
       figureHevc: "/hero-v1-figure-alpha.mp4",
+      figurePoster: undefined as string | undefined,
     };
 
 export function ParallaxHero() {
@@ -496,6 +498,7 @@ export function ParallaxHero() {
               <video
                 key={figureSrc}
                 src={figureSrc}
+                poster={HERO.figurePoster}
                 autoPlay
                 muted
                 loop
