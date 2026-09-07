@@ -108,6 +108,30 @@ export const fallbackProjects: ProjectData[] = [
     },
   },
   {
+    id: "ai-video-production",
+    title: "AI Video Production",
+    subtitle: "Multi-Tool Production Pipelines",
+    description:
+      "End-to-end AI video production pipelines built for commercial projects and major brands. Broadcast-quality content at a fraction of the traditional timeline.",
+    url: "#",
+    tags: ["Video", "AI", "Production"],
+    year: "2025",
+    iframeable: false,
+    accent: "radial-gradient(ellipse at 50% 100%, rgba(255,255,255,0.03) 0%, transparent 50%)",
+    number: "04",
+    thumbnail: "/thumbnails/ai-video.webp",
+    caseStudy: {
+      role: "Producer & Pipeline Architect",
+      highlights: [
+        { label: "Output", value: "Broadcast-quality" },
+        { label: "Pipeline", value: "Multi-tool" },
+        { label: "Speed", value: "10x faster" },
+        { label: "Clients", value: "Major brands" },
+      ],
+      stack: ["Runway", "Kling", "Seedance", "After Effects", "Premiere", "DaVinci"],
+    },
+  },
+  {
     id: "slop-design",
     title: "Slop.design",
     subtitle: "Intentional AI Artifact Aesthetics",
@@ -119,7 +143,7 @@ export const fallbackProjects: ProjectData[] = [
     iframeable: false,
     span: 2,
     accent: "radial-gradient(ellipse at 90% 90%, rgba(255,255,255,0.04) 0%, transparent 60%)",
-    number: "04",
+    number: "05",
     thumbnail: "/thumbnails/slop-design.webp",
     caseStudy: {
       role: "Brand Designer & Developer",
@@ -130,54 +154,6 @@ export const fallbackProjects: ProjectData[] = [
         { label: "Approach", value: "Artifacts as art" },
       ],
       stack: ["Next.js", "Supabase", "Drizzle ORM", "AI Generation"],
-    },
-  },
-  {
-    id: "adventures-in-ai",
-    title: "Adventures in AI",
-    subtitle: "Weekly Agency Newsletter",
-    description:
-      "A weekly newsletter authored at Global Prairie, now 53+ issues deep. Distilling the latest AI tools, techniques, and strategic implications.",
-    url: "#",
-    tags: ["Newsletter", "AI", "Marketing"],
-    year: "2025",
-    iframeable: false,
-    span: 2,
-    accent: "radial-gradient(ellipse at 10% 10%, rgba(255,255,255,0.04) 0%, transparent 60%)",
-    number: "05",
-    thumbnail: "/thumbnails/adventures-ai.webp",
-    caseStudy: {
-      role: "Author & Strategist",
-      highlights: [
-        { label: "Issues", value: "53+" },
-        { label: "Cadence", value: "Weekly" },
-        { label: "Org", value: "Global Prairie" },
-        { label: "Topics", value: "AI + Strategy" },
-      ],
-    },
-  },
-  {
-    id: "ai-video-production",
-    title: "AI Video Production",
-    subtitle: "Multi-Tool Production Pipelines",
-    description:
-      "End-to-end AI video production pipelines built for commercial projects and major brands. Broadcast-quality content at a fraction of the traditional timeline.",
-    url: "#",
-    tags: ["Video", "AI", "Production"],
-    year: "2025",
-    iframeable: false,
-    accent: "radial-gradient(ellipse at 50% 100%, rgba(255,255,255,0.03) 0%, transparent 50%)",
-    number: "06",
-    thumbnail: "/thumbnails/ai-video.webp",
-    caseStudy: {
-      role: "Producer & Pipeline Architect",
-      highlights: [
-        { label: "Output", value: "Broadcast-quality" },
-        { label: "Pipeline", value: "Multi-tool" },
-        { label: "Speed", value: "10x faster" },
-        { label: "Clients", value: "Major brands" },
-      ],
-      stack: ["Runway", "Kling", "Seedance", "After Effects", "Premiere", "DaVinci"],
     },
   },
 ];
@@ -994,7 +970,7 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
           <img
             data-card-thumb
             src={project.thumbnail}
-            alt={`${project.title} — project thumbnail`}
+            alt={`${project.title} project thumbnail`}
             className="absolute inset-0 w-full h-full object-cover object-top transform-gpu transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             loading="lazy"
           />
@@ -1203,7 +1179,7 @@ export function ProjectGallery({ projects = fallbackProjects }: ProjectGalleryPr
               <div className="relative overflow-hidden" style={{ height: "120px" }}>
                 <img
                   src={project.thumbnail}
-                  alt={`${project.title} — project thumbnail`}
+                  alt={`${project.title} project thumbnail`}
                   className="absolute inset-0 w-full h-full object-cover object-top"
                   loading="lazy"
                 />

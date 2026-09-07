@@ -58,8 +58,8 @@
 
   position: relative;
   font-family: var(--pj-font-display);
-  /* matches the 80px block padding every other section on the page uses */
-  padding-block: 5rem;
+  /* 40px block padding on phones, 80px from md, like every other section */
+  padding-block: 2.5rem;
   /* Switching projects rewrites content in place. Chrome's scroll anchoring
      then "helpfully" adjusts scrollY to keep its anchor still, which shoves
      the preview out from under the visitor. We stabilise the height below
@@ -1089,5 +1089,89 @@
   }
   .pj__toggle:active {
     transform: none;
+  }
+}
+
+/* ── HN loader — the mark draws itself while a preview loads ───────────────
+   Sits over the poster (scrim + blur so it reads on any thumbnail) and under
+   the live iframe, which fades in on top once it has painted. Driven by the
+   parent's data-state, same as the 2px sweep above it. */
+.pj__hn {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.875rem;
+  background: oklch(0.13 0.008 275 / 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity var(--pj-dur-slow) var(--pj-ease-out);
+  pointer-events: none;
+}
+
+.pj__frame[data-state="loading"] .pj__hn,
+.pj__frame[data-state="slow"] .pj__hn,
+.pj__dialog-body[data-state="loading"] .pj__hn {
+  opacity: 1;
+}
+
+.pj__hn-mark {
+  /* px-based: a % here resolves against the shrink-wrapped grid cell and
+     collapses to the minimum */
+  width: min(112px, 24vw);
+  height: auto;
+  overflow: visible;
+}
+
+.pj__hn-stroke {
+  stroke: var(--pj-ink);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: pj-hn-draw 2.6s var(--pj-ease-in-out) infinite;
+}
+.pj__hn-stroke:nth-child(2) { animation-delay: 0.14s; }
+.pj__hn-stroke:nth-child(3) { animation-delay: 0.28s; }
+.pj__hn-stroke:nth-child(4) { animation-delay: 0.5s; }
+.pj__hn-stroke:nth-child(5) { animation-delay: 0.64s; }
+.pj__hn-stroke:nth-child(6) { animation-delay: 0.78s; }
+
+@keyframes pj-hn-draw {
+  0%   { stroke-dashoffset: 1; opacity: 0; }
+  6%   { opacity: 1; }
+  38%  { stroke-dashoffset: 0; opacity: 1; }
+  72%  { stroke-dashoffset: 0; opacity: 1; }
+  86%  { stroke-dashoffset: 0; opacity: 0; }
+  100% { stroke-dashoffset: 1; opacity: 0; }
+}
+
+.pj__hn-label {
+  font: 500 0.6875rem/1 var(--pj-font-mono);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--pj-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pj__hn-stroke {
+    animation: none;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.pj__dialog-body .pj__hn-mark {
+  width: min(160px, 30vw);
+}
+
+@media (min-width: 768px) {
+  .pj {
+    padding-block: 5rem;
   }
 }

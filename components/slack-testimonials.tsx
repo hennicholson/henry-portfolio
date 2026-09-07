@@ -40,7 +40,7 @@ function getVisitorId(): string {
 const fallbackMessages: TestimonialData[] = [
   {
     name: "Sarah Chen",
-    text: "Henry brings a rare combination of technical skill and creative vision. He doesn\u2019t just build things \u2014 he builds the right things, fast.",
+    text: "Henry brings a rare combination of technical skill and creative vision. He doesn\u2019t just build things. He builds the right things, fast.",
     color: "rgba(59, 130, 246, 0.25)",
   },
   {
@@ -470,10 +470,10 @@ export default function SlackTestimonials({
       <div className="w-[90vw] max-w-5xl mx-auto px-4 md:px-6">
         {/* Section header */}
         <div className="mb-10 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+          <h2 className="section-title">
             My Take on Testimonials
           </h2>
-          <p className="mt-3 text-white/25 text-sm md:text-base max-w-lg mx-auto">
+          <p className="section-lede">
             Real words from people I&apos;ve worked with. Drop a message if you&apos;ve got something to say.
           </p>
         </div>

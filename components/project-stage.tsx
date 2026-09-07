@@ -86,8 +86,8 @@ const PROJECT_VIDEOS: Record<string, string> = {
 const PROJECT_POINTS: Record<string, string[]> = {
   "skinny-studio": [
     "Skinny Creative Agency",
-    "Skinny.studio — AI creative platform",
-    "Skinny OS — internal operating system",
+    "Skinny.studio: AI creative platform",
+    "Skinny OS: internal operating system",
   ],
 };
 
@@ -123,6 +123,25 @@ function isFrameable(project: ProjectData): boolean {
 
 function displayHost(url: string): string {
   return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
+/* The HN mark draws itself stroke by stroke while a preview loads. Six
+   strokes on a normalised path length so one keyframe set drives them all;
+   the delays stagger H before N. Shown by the parent's data-state. */
+function HNLoader() {
+  return (
+    <div className="pj__hn" aria-hidden="true">
+      <svg className="pj__hn-mark" viewBox="0 0 128 64" fill="none">
+        <path className="pj__hn-stroke" pathLength={1} d="M15 8 V56" />
+        <path className="pj__hn-stroke" pathLength={1} d="M15 32 H47" />
+        <path className="pj__hn-stroke" pathLength={1} d="M47 8 V56" />
+        <path className="pj__hn-stroke" pathLength={1} d="M69 56 V8" />
+        <path className="pj__hn-stroke" pathLength={1} d="M69 8 L113 56" />
+        <path className="pj__hn-stroke" pathLength={1} d="M113 56 V8" />
+      </svg>
+      <span className="pj__hn-label">Loading</span>
+    </div>
+  );
 }
 
 const STATUS_LABEL: Record<FrameState, string> = {
@@ -173,6 +192,8 @@ export function ProjectStage({ projects }: ProjectStageProps) {
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const [slowSrc, setSlowSrc] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  /* the expanded iframe has its own load; reset each time the dialog opens */
+  const [dialogLoaded, setDialogLoaded] = useState(false);
   /* "on" rotates, "paused" holds the bar mid-fill (hover / focus / hidden tab /
      scrolled away), "off" retires it — either the visitor took control or they
      asked for reduced motion. */
@@ -606,6 +627,7 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                   className="pj__cta"
                   onClick={() => {
                     soundEngine.play("open");
+                    setDialogLoaded(false);
                     setDialogOpen(true);
                   }}
                 >
@@ -630,6 +652,7 @@ export function ProjectStage({ projects }: ProjectStageProps) {
               onTouchEnd={onTouchEnd}
             >
               <span className="pj__loader" aria-hidden="true" />
+              <HNLoader />
               {active.thumbnail && (
                 <img
                   className="pj__poster"
@@ -664,7 +687,7 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                   key={target}
                   className="pj__live"
                   src={target}
-                  title={`${active.title} — live preview`}
+                  title={`${active.title} live preview`}
                   data-loaded={frameState === "live"}
                   onLoad={() => setLoadedSrc(target)}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
@@ -854,7 +877,8 @@ export function ProjectStage({ projects }: ProjectStageProps) {
                 <X size={16} aria-hidden="true" />
               </button>
             </div>
-            <div className="pj__dialog-body">
+            <div className="pj__dialog-body" data-state={videoSrc || dialogLoaded ? "live" : "loading"}>
+              {!videoSrc && <HNLoader />}
               {videoSrc ? (
                 <video
                   className="pj__dialog-frame"
@@ -869,7 +893,8 @@ export function ProjectStage({ projects }: ProjectStageProps) {
               <iframe
                 className="pj__dialog-frame"
                 src={target ?? undefined}
-                title={`${active.title} — full screen preview`}
+                title={`${active.title} full screen preview`}
+                onLoad={() => setDialogLoaded(true)}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
                 referrerPolicy="no-referrer-when-downgrade"
               />

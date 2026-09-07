@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { soundEngine } from "@/lib/sounds";
@@ -13,7 +13,7 @@ const milestones = [
     year: "2018",
     age: "13",
     title: "The Spark",
-    body: "Built my first online business from a bedroom in Minnesota. No mentors, no playbook \u2014 just a kid who figured out the internet could be more than entertainment.",
+    body: "Built my first online business from a bedroom in Minnesota. No mentors, no playbook, just a kid who figured out the internet could be more than entertainment.",
     quote: "You don\u2019t need permission to start.",
     annotation: "this changed everything \u2726",
   },
@@ -36,15 +36,15 @@ const milestones = [
     year: "2024",
     age: "19",
     title: "Going Full-Time",
-    body: "Joined Global Prairie as a Junior Associate, co-founded ForeFront USD, and launched Adventures in AI \u2014 now 53+ issues and counting.",
+    body: "Assisting Global Prairie as a Junior Associate and co-founding ForeFront USD. Real clients, real stakes, and a lot of learning on the fly.",
     quote: "Say yes, then figure it out.",
   },
   {
     year: "2026",
     age: "21",
     title: "Building the Future",
-    body: "Creating LaunchPad and Skinny while studying marketing at the University of San Diego. Learning in public, no gatekeeping.",
-    quote: "The work is never done \u2014 and that\u2019s the point.",
+    body: "Building products, teaching what I learn, and helping other people ship theirs, all while being a full-time student. Learning in public, no gatekeeping.",
+    quote: "The work is never done, and that\u2019s the point.",
     annotation: "\u2190 you are here",
   },
 ];
@@ -52,6 +52,18 @@ const milestones = [
 export function ScrollTimeline() {
   const sectionRef = useRef<HTMLElement>(null);
   useVideoVisibility(sectionRef);
+
+  /* One background encode per breakpoint (phones get a centre 9:16 crop), and
+     only that one is mounted so the other never downloads. null until
+     hydration. */
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
   const headerRef = useRef<HTMLDivElement>(null);
   const lineTrackRef = useRef<HTMLDivElement>(null);
   const lineFillRef = useRef<HTMLDivElement>(null);
@@ -234,30 +246,41 @@ export function ScrollTimeline() {
           50% { opacity: 0.14; }
         }
       `}</style>
-      {/* Background video — extends upward to cover section transition above */}
-      <div className="absolute -top-40 left-0 right-0 -bottom-40 overflow-hidden pointer-events-none"
+      {/* Background video. The wrapper runs 160px past the section top and
+          bottom so the mask covers both transitions. The video itself is
+          viewport-sized and sticky inside that wrapper, so it shows its whole
+          frame and holds still while the timeline scrolls past. It used to be
+          cover-scaled to the full section height: 1.6x on desktop, and on a
+          phone a 230px-wide sliver of a 1920px source. overflow-clip rather
+          than hidden: hidden makes the wrapper a scroll container and sticky
+          stops working. */}
+      <div className="absolute -top-40 left-0 right-0 -bottom-40 overflow-clip pointer-events-none"
         style={{
           maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
         }}
       >
-        <video
-          src="/journey-bg.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ animation: "journey-breathe 8s ease-in-out infinite" }}
-        />
+        {isDesktop !== null && (
+          <video
+            key={isDesktop ? "desktop" : "mobile"}
+            src={isDesktop ? "/journey-bg-v3.mp4" : "/journey-bg-v3-mobile.mp4"}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className="sticky top-0 block w-full h-screen object-cover"
+            style={{ animation: "journey-breathe 8s ease-in-out infinite" }}
+          />
+        )}
         <div className="absolute inset-0 bg-[#050508]/35" />
       </div>
 
       <div ref={headerRef} className="relative w-[90vw] max-w-5xl mx-auto px-4 md:px-6 mb-10 text-center">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+        <h2 className="section-title">
           The Journey
         </h2>
-        <p className="mt-3 text-white/25 text-sm md:text-base">
+        <p className="section-lede">
           From curious kid to full-time builder
         </p>
       </div>

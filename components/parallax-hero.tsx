@@ -8,6 +8,28 @@ import { soundEngine } from "@/lib/sounds";
 
 gsap.registerPlugin(ScrollTrigger);
 
+/* Hero version switch. 2 = space montage background + graded moon-surface
+   cutout (Sep 2026). 1 = the original sunset ridge hero. Both asset sets stay
+   in public/ as hero-v1-* and hero-v2-*; flip the number to swap. */
+const HERO_VERSION: 1 | 2 = 2;
+const HERO = HERO_VERSION === 2
+  ? {
+      bgDesktop: "/hero-v2-bg.mp4",
+      bgDesktopPoster: "/hero-v2-bg.jpg",
+      bgMobile: "/hero-v2-bg-mobile.mp4",
+      bgMobilePoster: "/hero-v2-bg-mobile.jpg",
+      figureWebm: "/hero-v2-figure.webm",
+      figureHevc: "/hero-v2-figure-alpha.mp4",
+    }
+  : {
+      bgDesktop: "/hero-v1-bg.mp4",
+      bgDesktopPoster: "/hero-v1-bg.jpg",
+      bgMobile: "/hero-v1-bg-mobile.mp4",
+      bgMobilePoster: "/hero-v1-bg-mobile.jpg",
+      figureWebm: "/hero-v1-figure.webm",
+      figureHevc: "/hero-v1-figure-alpha.mp4",
+    };
+
 export function ParallaxHero() {
   const parallaxRef = useRef<HTMLDivElement>(null);
   const h1Ref = useRef<HTMLHeadingElement>(null);
@@ -27,7 +49,7 @@ export function ParallaxHero() {
      reject the first candidate and settle loaded-but-paused, so pick the file
      by codec probe instead and keep a plain src on the element. The WebM is
      the server-rendered default because that is the proven Chrome path. */
-  const [figureSrc, setFigureSrc] = useState("/hero-figure-v2.webm");
+  const [figureSrc, setFigureSrc] = useState(HERO.figureWebm);
 
   /* Which breakpoint's video to mount. Both videos used to sit in the DOM and
      the hidden one still downloaded — phones pulled the 3.2MB desktop file,
@@ -45,7 +67,7 @@ export function ParallaxHero() {
   useEffect(() => {
     const probe = document.createElement("video");
     if (probe.canPlayType('video/mp4; codecs="hvc1"')) {
-      setFigureSrc("/hero-figure-alpha.mp4");
+      setFigureSrc(HERO.figureHevc);
     }
   }, []);
 
@@ -328,7 +350,9 @@ export function ParallaxHero() {
         ref={h1RefProp}
         className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white tracking-tighter text-center leading-[0.9] select-none"
         style={{
-          textShadow: "0 2px 20px rgba(0, 0, 0, 0.6)",
+          textShadow: HERO_VERSION === 2
+            ? "0 2px 24px rgba(0, 0, 0, 0.85), 0 0 80px rgba(0, 0, 0, 0.55)"
+            : "0 2px 20px rgba(0, 0, 0, 0.6)",
           opacity: 0,
         }}
         onMouseDown={isMain ? handleNameHold : undefined}
@@ -389,7 +413,7 @@ export function ParallaxHero() {
           </div>
         </div>
       )}
-      <section className="parallax__header" data-section="hero">
+      <section className="parallax__header" data-section="hero" data-hero-v2={HERO_VERSION === 2 ? "" : undefined}>
         <div className="parallax__visuals">
           <div data-parallax-layers className="parallax__layers">
             {/* Layer 1: Background — mobile plays a lighter portrait encode of
@@ -397,47 +421,50 @@ export function ParallaxHero() {
                 poster and video share one aspect ratio and object-fit crops them
                 identically; a mismatched poster leaves a seam where iOS
                 composites the two. */}
-            <img
-              src="/hero-bg-mobile.jpg"
-              alt=""
-              loading="eager"
-              fetchPriority="high"
-              data-parallax-layer="1"
-              className="parallax__layer-img parallax__layer-hw md:!hidden"
-            />
-            <img
-              src="/hero-bg-desktop.jpg"
-              alt=""
-              loading="eager"
-              fetchPriority="high"
-              data-parallax-layer="1"
-              className="parallax__layer-img parallax__layer-hw !hidden md:!block"
-            />
-            {isDesktop === false && (
-              <video
-                src="/hero-bg-video-boomerang-mobile.mp4"
-                poster="/hero-bg-mobile.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                data-parallax-layer="1"
-                className="parallax__layer-img parallax__layer-hw parallax__bleed"
+            {/* One wrapper carries the layer-1 parallax transform for everything
+                inside it. The GSAP tween collects its targets once on mount, and
+                the videos mount later (after the breakpoint resolves), so a
+                per-element data-parallax-layer left the video out of the
+                parallax: only the poster behind it moved. */}
+            <div data-parallax-layer="1" className="parallax__layer-img parallax__layer-hw">
+              <img
+                src={HERO.bgMobilePoster}
+                alt=""
+                loading="eager"
+                fetchPriority="high"
+                className="parallax__layer-img md:!hidden"
               />
-            )}
-            {isDesktop === true && (
-              <video
-                src="/hero-bg-video-boomerang.mp4"
-                poster="/hero-bg-desktop.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                data-parallax-layer="1"
-                className="parallax__layer-img parallax__layer-hw"
+              <img
+                src={HERO.bgDesktopPoster}
+                alt=""
+                loading="eager"
+                fetchPriority="high"
+                className="parallax__layer-img !hidden md:!block"
               />
-            )}
+              {isDesktop === false && (
+                <video
+                  src={HERO.bgMobile}
+                  poster={HERO.bgMobilePoster}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  className="parallax__layer-img parallax__bleed"
+                />
+              )}
+              {isDesktop === true && (
+                <video
+                  src={HERO.bgDesktop}
+                  poster={HERO.bgDesktopPoster}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="parallax__layer-img"
+                />
+              )}
+            </div>
 
             {/* Layer 2: Gradient */}
             <div
@@ -457,13 +484,15 @@ export function ParallaxHero() {
                 Tune the mobile size with --fg-scale in globals.css.
                 The figure file is chosen by codec probe above — Safari needs
                 HEVC to get an alpha channel, Chrome needs the WebM. */}
-            <div data-parallax-layer="4" className="parallax__layer-hw parallax__fg">
-              <img
-                src="/hero-ridge-desktop.webp"
-                loading="eager"
-                alt=""
-                className="parallax__fg-media"
-              />
+            <div data-parallax-layer="4" data-hero-v2={HERO_VERSION === 2 ? "" : undefined} className="parallax__layer-hw parallax__fg">
+              {HERO_VERSION === 1 && (
+                <img
+                  src="/hero-v1-ridge.webp"
+                  loading="eager"
+                  alt=""
+                  className="parallax__fg-media"
+                />
+              )}
               <video
                 key={figureSrc}
                 src={figureSrc}
@@ -488,7 +517,7 @@ export function ParallaxHero() {
         <div
           ref={scrollRef}
           className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20"
-          style={{ opacity: 0 }}
+          style={{ opacity: 0, ...(HERO_VERSION === 2 ? { top: "calc(100svh - 5rem)", bottom: "auto" } : {}) }}
         >
           <div className="flex flex-col items-center gap-2">
             <div

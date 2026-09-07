@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { soundEngine } from "@/lib/sounds";
@@ -17,21 +17,57 @@ const row2 = [
   "SUPABASE", "TAILWIND", "VERCEL", "MIDJOURNEY", "AFTER EFFECTS", "WHOP APPS",
 ];
 
-function MarqueeRow({ items, direction }: { items: string[]; direction: "left" | "right" }) {
-  const doubled = [...items, ...items];
+/* Crawl speed in CSS px per second. Held constant no matter how many item
+   sets a row needs, so a wide viewport doesn't get a faster marquee. */
+const MARQUEE_SPEED = 28;
 
-  return (
-    <div className="overflow-hidden group">
-      {/* One chrome sweep on the row, clipped to all its text at once. This
-          used to run a separate background-position animation on every span —
-          ~60 concurrent paint-property animations for one visual effect. */}
+function MarqueeRow({ items, direction }: { items: string[]; direction: "left" | "right" }) {
+  const clipRef = useRef<HTMLDivElement>(null);
+  const setRef = useRef<HTMLDivElement>(null);
+
+  /* The track holds two identical copies and the keyframes slide it by
+     exactly one copy (-50% of its own width) for a seamless loop. Two things
+     have to hold for that to work, and neither did before:
+       1. The track must be sized to its content (w-max). As a block-level
+          flex container it was viewport-wide, so -50% was half the viewport
+          rather than one copy, and every cycle jumped.
+       2. One copy must be at least as wide as the clip box, or the far end of
+          the second copy comes into view and leaves a blank gap on the right.
+          A copy is `sets` repetitions of the item list; the SSR default of 2
+          covers viewports up to ~2x one set, and the effect below re-measures
+          and grows it on wider screens. */
+  const [sets, setSets] = useState(2);
+  const [duration, setDuration] = useState((items.length * 3 * 2));
+
+  useEffect(() => {
+    const clip = clipRef.current;
+    const set = setRef.current;
+    if (!clip || !set) return;
+
+    const measure = () => {
+      const setWidth = set.offsetWidth;
+      const clipWidth = clip.offsetWidth;
+      if (!setWidth || !clipWidth) return;
+      const needed = Math.max(1, Math.ceil(clipWidth / setWidth));
+      setSets(needed);
+      setDuration((setWidth * needed) / MARQUEE_SPEED);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(clip);
+    return () => ro.disconnect();
+  }, []);
+
+  const renderCopy = (copyIndex: number) =>
+    Array.from({ length: sets }, (_, s) => (
       <div
-        className="mq-chrome flex whitespace-nowrap group-hover:[animation-play-state:paused]"
-        style={{
-          animation: `marquee-${direction} ${items.length * 3}s linear infinite, chrome-sweep 6s ease-in-out infinite`,
-        }}
+        key={`${copyIndex}-${s}`}
+        ref={copyIndex === 0 && s === 0 ? setRef : undefined}
+        className="flex shrink-0"
+        aria-hidden={copyIndex === 1 || s > 0 ? true : undefined}
       >
-        {doubled.map((item, i) => (
+        {items.map((item, i) => (
           <span key={i} className="flex items-center shrink-0">
             <span className="mq-item text-[10px] font-mono tracking-[0.3em] uppercase px-4 transition-opacity duration-700 group-hover:opacity-80">
               {item}
@@ -39,6 +75,22 @@ function MarqueeRow({ items, direction }: { items: string[]; direction: "left" |
             <span className="text-white/[0.06] text-[8px] select-none">&middot;</span>
           </span>
         ))}
+      </div>
+    ));
+
+  return (
+    <div ref={clipRef} className="overflow-hidden group">
+      {/* One chrome sweep on the row, clipped to all its text at once. This
+          used to run a separate background-position animation on every span —
+          ~60 concurrent paint-property animations for one visual effect. */}
+      <div
+        className="mq-chrome flex w-max whitespace-nowrap group-hover:[animation-play-state:paused]"
+        style={{
+          animation: `marquee-${direction} ${duration}s linear infinite, mq-sweep 6s ease-in-out infinite`,
+        }}
+      >
+        {renderCopy(0)}
+        {renderCopy(1)}
       </div>
     </div>
   );
@@ -77,6 +129,17 @@ export function SkillsMarquee() {
           0% { transform: translateX(-50%); }
           100% { transform: translateX(0); }
         }
+        /* The sweep is sized in viewport units, not % of the track. The track
+           is now content-width (several viewports wide), and a %-sized
+           gradient on it would stretch the band out to match. */
+        @keyframes mq-sweep {
+          0% {
+            background-position: 200vw center;
+          }
+          100% {
+            background-position: -200vw center;
+          }
+        }
         @keyframes chrome-sweep {
           0% {
             background-position: -200% center;
@@ -96,7 +159,7 @@ export function SkillsMarquee() {
             rgba(255,255,255,0.08) 65%,
             rgba(255,255,255,0.08) 100%
           );
-          background-size: 200% 100%;
+          background-size: 200vw 100%;
           background-clip: text;
           -webkit-background-clip: text;
         }

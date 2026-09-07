@@ -116,7 +116,7 @@ export function ConnectSection() {
   }, []);
 
   return (
-    <footer ref={sectionRef} className="relative py-10 md:py-16 overflow-hidden" data-section="footer">
+    <footer ref={sectionRef} className="relative py-10 md:py-20 overflow-hidden" data-section="footer">
       {/* Trailing spotlight */}
       <div
         ref={spotlightRef}
@@ -130,10 +130,10 @@ export function ConnectSection() {
       />
       <div className="w-[90vw] max-w-3xl mx-auto px-4 md:px-6 relative">
         <div className="text-center mb-10" data-animate>
-          <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
+          <h2 className="section-title">
             What&apos;s Next?
           </h2>
-          <p className="mt-3 text-white/40 text-base max-w-md mx-auto leading-relaxed">
+          <p className="section-lede">
             Always building, always learning.
           </p>
           <div
@@ -145,7 +145,7 @@ export function ConnectSection() {
               transform: "rotate(-2deg)",
             }}
           >
-            seriously, DM me &mdash; I respond fast
+            seriously, DM me. I respond fast
             <svg
               width="50"
               height="24"

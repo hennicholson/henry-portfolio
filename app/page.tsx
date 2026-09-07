@@ -17,7 +17,12 @@ import { SoundToggle } from "@/components/sound-toggle";
 import { GuidesSection } from "@/components/guides-section";
 import { getVisibleProjects, getVisibleToolCategories, getVisibleTestimonials, getVisibleGuides } from "@/lib/db/queries";
 
-export const dynamic = "force-dynamic";
+/* ISR: the home page is the same for every visitor, so render it once and
+   serve it from cache, refreshing in the background at most every 2 minutes.
+   It was force-dynamic: four Neon queries and a full render on every hit,
+   which put 200-450ms of TTFB in front of everything else. Admin edits show
+   up within the window. */
+export const revalidate = 120;
 
 export default async function Home() {
   const [projects, toolCategories, dbTestimonials, dbGuides] = await Promise.all([
@@ -46,11 +51,15 @@ export default async function Home() {
 
       <ScrollTimeline />
 
+      <SectionTransition variant="chapter" />
+
       <Toolbox categories={toolCategories.length > 0 ? toolCategories : undefined} />
 
       <SectionTransition variant="chapter" />
 
       <ProjectStage projects={projects.length > 0 ? projects : fallbackProjects} />
+
+      <SectionTransition variant="chapter" />
 
       <SlackTestimonials testimonials={dbTestimonials.length > 0 ? dbTestimonials.map((t) => ({
         id: t.id,
@@ -60,6 +69,8 @@ export default async function Home() {
         workplace: t.workplace,
         color: t.color,
       })) : undefined} />
+
+      <SectionTransition variant="chapter" />
 
       <NewsletterCTA />
 
@@ -80,7 +91,7 @@ export default async function Home() {
         takeaways: g.takeaways.length > 0 ? g.takeaways : undefined,
       })) : undefined} />
 
-      <SectionTransition variant="subtle" />
+      <SectionTransition variant="chapter" />
 
       <ConnectSection />
     </main>

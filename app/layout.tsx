@@ -22,16 +22,16 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   metadataBase: new URL("https://henrynicholson.dev"),
   title: {
-    default: "Henry Nicholson — Builder & Entrepreneur",
+    default: "Henry Nicholson, Builder & Entrepreneur",
     template: "%s | Henry Nicholson",
   },
   description:
-    "Henry Nicholson — AI-forward Creative Developer & Designer. Junior Associate at Global Prairie; creator of Skinny Studio, vibechckd, LaunchPad, and ForeFront.",
+    "Henry Nicholson, AI-forward Creative Developer & Designer. Junior Associate at Global Prairie; creator of Skinny Studio, vibechckd, LaunchPad, and ForeFront.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Henry Nicholson — Builder & Entrepreneur",
+    title: "Henry Nicholson, Builder & Entrepreneur",
     description:
       "AI-forward Creative Developer & Designer. Junior Associate at Global Prairie; creator of Skinny Studio, vibechckd, LaunchPad, and ForeFront.",
     url: "https://henrynicholson.dev",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Henry Nicholson — Builder & Entrepreneur",
+    title: "Henry Nicholson, Builder & Entrepreneur",
     description:
       "AI-forward Creative Developer & Designer. Junior Associate at Global Prairie; creator of Skinny Studio, vibechckd, LaunchPad, and ForeFront.",
   },

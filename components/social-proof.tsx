@@ -9,7 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 const testimonials = [
   {
     quote:
-      "Henry brings a rare combination of technical skill and creative vision. He doesn\u2019t just build things \u2014 he builds the right things, fast.",
+      "Henry brings a rare combination of technical skill and creative vision. He doesn\u2019t just build things. He builds the right things, fast.",
     name: "Global Prairie",
     role: "Colleague",
   },

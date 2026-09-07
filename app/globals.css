@@ -343,6 +343,137 @@ body {
   }
 }
 
+/* v2 hero preview. The figure file is now a full 1920x1080 frame with the
+   cutout and moon ground placed to match the background, so it gets exactly
+   the background's treatment: cover-fit, centred, no nudge, on every
+   viewport. Overrides the figure-only tuning above. Scoped to the data
+   attribute set by HERO_V3 in parallax-hero.tsx; remove with the flag. */
+.parallax__fg[data-hero-v2] video.parallax__fg-media {
+  top: 0;
+}
+
+/* Never crop the v2 frame top/bottom. On viewports wider than 16:9, cover-fit
+   scaled the frame by width and cut ~6% off the top (sky) and bottom (moon).
+   Sizing the hero to the full frame instead lets it run past the fold, so the
+   rest of the moon surface reveals as you scroll while the framing itself is
+   untouched. Taller-than-16:9 viewports keep 100vh and cover-crop the sides
+   exactly as before. The background shares the 16:9 frame, so it lines up. */
+@media (min-width: 768px) {
+  .parallax__header[data-hero-v2] {
+    height: max(100vh, 56.25vw);
+  }
+}
+
+/* The section fade blended the sunset ridge into the page. On v2 it swallowed
+   the moon: the fade is the bottom 35% of the hero and the moon surface is the
+   bottom 30% of the frame. Keep only a short blend at the frame's bottom edge,
+   where the legs are cut off by the frame, and leave the surface visible. */
+.parallax__header[data-hero-v2] .parallax__fade {
+  height: 14%;
+  background: linear-gradient(
+    to top,
+    #050508 0%,
+    rgba(5, 5, 8, 0.85) 30%,
+    rgba(5, 5, 8, 0.35) 65%,
+    transparent 100%
+  );
+}
+
+/* v2 look. Both videos were bright against the dark page; a filter on the media
+   (not an overlay, so the name stays untouched) brings them down to the same
+   dark wash the Journey background uses. The title layer centres in the
+   viewport rather than the hero, which runs taller than the fold on wide
+   screens and was leaving the name ~62% down the screen. */
+.parallax__header[data-hero-v2] [data-parallax-layer="1"],
+.parallax__fg[data-hero-v2] video.parallax__fg-media {
+  filter: brightness(0.68) contrast(1.06) saturate(0.85);
+}
+.parallax__header[data-hero-v2] .parallax__layer-title--ghost {
+  opacity: 0.2;
+}
+.parallax__header[data-hero-v2] .parallax__layer-title p {
+  color: rgba(255, 255, 255, 0.74);
+}
+@media (min-width: 768px) {
+  .parallax__header[data-hero-v2] .parallax__layer-title {
+    height: 100vh;
+  }
+}
+
+/* v2 on phones. The frame is 16:9 so it cannot cover a portrait screen; the
+   pinned-bottom stack from above is kept, scaled to 200vw so the figure fills
+   the lower half with his arms running off both edges, and the name moves up
+   into the sky above the raised hands (which peak ~4% below the box top) and
+   grows. The hero uses the small viewport unit so the composition sits above
+   the browser toolbar, and the fade is trimmed so the moon reads. */
+@media (max-width: 767px) {
+  .parallax__header[data-hero-v2] {
+    height: 100svh;
+  }
+  .parallax__fg[data-hero-v2] {
+    --fg-scale: 200%;
+    aspect-ratio: 16 / 9;
+    /* lifted off the bottom edge; the fade below turns the gap into solid
+       page colour so the moon dissolves under his legs instead of ending
+       at a hard frame edge */
+    bottom: 5%;
+  }
+  .parallax__fg[data-hero-v2] .parallax__fg-media {
+    object-fit: fill;
+    height: 100%;
+    top: 0;
+  }
+  .parallax__header[data-hero-v2] .parallax__layer-title {
+    justify-content: flex-start;
+    padding-top: 18svh;
+  }
+  .parallax__header[data-hero-v2] .parallax__layer-title h1 {
+    font-size: clamp(3.25rem, 16vw, 4.5rem);
+  }
+  .parallax__header[data-hero-v2] .parallax__layer-title p {
+    margin-top: 1.1rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.32em;
+  }
+  .parallax__header[data-hero-v2] .parallax__fade {
+    /* solid through the 5% gap under the stack, then blends across the
+       lower part of the moon band */
+    height: 16%;
+    background: linear-gradient(
+      to top,
+      #050508 0%,
+      #050508 31%,
+      rgba(5, 5, 8, 0.85) 45%,
+      rgba(5, 5, 8, 0.35) 75%,
+      transparent 100%
+    );
+  }
+}
+
+/* Shorter phones (9:16 and squarer, e.g. iPhone SE): the 200vw box would put
+   the raised hands under the subtitle, so scale the figure down and lift the
+   text less. Tall 19.5:9 phones keep the block above. */
+@media (max-width: 767px) and (min-aspect-ratio: 1/2) {
+  .parallax__fg[data-hero-v2] {
+    --fg-scale: 165%;
+    bottom: 4%;
+  }
+  .parallax__header[data-hero-v2] .parallax__layer-title {
+    padding-top: 13svh;
+  }
+  .parallax__header[data-hero-v2] .parallax__fade {
+    height: 15%;
+    background: linear-gradient(
+      to top,
+      #050508 0%,
+      #050508 27%,
+      rgba(5, 5, 8, 0.85) 45%,
+      rgba(5, 5, 8, 0.35) 80%,
+      transparent 100%
+    );
+  }
+}
+
 /* iOS composites a scaled video inside a hardware layer with occasional 1px
    edge seams. Bleeding the element a hair past its box puts any such edge
    outside the visible area. Invisible otherwise — object-fit still crops. */
@@ -352,3 +483,29 @@ body {
   top: -1px;
   left: -1px;
 }
+
+
+
+
+
+/* ── Section heads ─────────────────────────────────────────────────────────
+   One title and lede treatment for every section. Toolbox and Projects had
+   this scale in their own stylesheets (clamp to 48px) while Journey,
+   Testimonials, Guides and the footer used a Tailwind stack that ran to 60px
+   with a dimmer lede; these mirror the former so all heads match. */
+.section-title {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.6rem + 2.2vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  color: #fff;
+}
+.section-lede {
+  margin: 0.75rem auto 0;
+  max-width: 32rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.5);
+}
+

@@ -1,6 +1,6 @@
 import { db } from "./index";
 import { projects, leads, toolCategories, tools, testimonials, testimonialReactions, guides } from "./schema";
-import { eq, asc, desc, and, sql } from "drizzle-orm";
+import { eq, asc, desc, and, sql, inArray } from "drizzle-orm";
 import type { ProjectData } from "@/components/project-gallery";
 export type { ProjectData };
 
@@ -107,7 +107,7 @@ export async function getReactionCounts(testimonialIds: number[]): Promise<React
         count: sql<number>`count(*)::int`,
       })
       .from(testimonialReactions)
-      .where(sql`${testimonialReactions.testimonialId} = ANY(${testimonialIds})`)
+      .where(inArray(testimonialReactions.testimonialId, testimonialIds))
       .groupBy(testimonialReactions.testimonialId, testimonialReactions.emoji);
     return rows;
   } catch (error) {

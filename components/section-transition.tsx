@@ -13,7 +13,7 @@ interface SectionTransitionProps {
 
 const gapMessages = [
   "still scrolling?",
-  "you\u2019re thorough \u2014 I like that",
+  "you\u2019re thorough, I like that",
   "keep going...",
   "almost there",
   "you found a secret",

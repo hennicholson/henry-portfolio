@@ -60,8 +60,8 @@ const guides: Guide[] = [
     takeaways: [
       { text: "Context is what turns a general-purpose model into YOUR model" },
       { text: "With 1M tokens, load your entire brand ecosystem into one conversation" },
-      { text: "Build reusable context swipe files — identity, voice, style rules, examples" },
-      { text: "Opus 4.6 scores 76% on MRCR v2 across 1M tokens — 4x better retrieval" },
+      { text: "Build reusable context swipe files: identity, voice, style rules, examples" },
+      { text: "Opus 4.6 scores 76% on MRCR v2 across 1M tokens, 4x better retrieval" },
       { text: "The era of 'close enough' AI output is over" },
     ],
   },
@@ -90,7 +90,7 @@ const guides: Guide[] = [
       { title: "The Universal Brain Dump Processor", page: 12 },
     ],
     takeaways: [
-      { text: "The best prompt isn't a prompt at all — it's a conversation" },
+      { text: "The best prompt isn't a prompt at all. It's a conversation" },
       { text: "Voice captures 3x more raw material than typing" },
       { text: "Let Claude interview you in 5-10 question rounds, not 30 at once" },
       { text: "Each round gets sharper as Claude builds context from your answers" },
@@ -126,9 +126,9 @@ const guides: Guide[] = [
       { title: "Token Economics: Is It Worth It", page: 16 },
     ],
     takeaways: [
-      { text: "One agent is a developer — a team of agents is an engineering org" },
-      { text: "LLMs degrade as context grows — split work across focused agents" },
-      { text: "The spawn prompt is everything — include files, patterns, and what done looks like" },
+      { text: "One agent is a developer. A team of agents is an engineering org" },
+      { text: "LLMs degrade as context grows. Split work across focused agents" },
+      { text: "The spawn prompt is everything: include files, patterns, and what done looks like" },
       { text: "Use subagents for independent tasks, teams when workers need to communicate" },
       { text: "Agent teams ship 3-5x faster on complex, multi-domain work" },
     ],
@@ -643,10 +643,10 @@ export function GuidesSection({ dbGuides }: { dbGuides?: Guide[] } = {}) {
       <div className="w-[90vw] max-w-5xl mx-auto px-4 md:px-6">
         {/* Header */}
         <div ref={headerRef} className="mb-10 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+          <h2 className="section-title">
             Workflows & Guides
           </h2>
-          <p className="mt-3 text-white/25 text-sm md:text-base max-w-lg mx-auto">
+          <p className="section-lede">
             Free playbooks on context engineering, AI agent teams, and building with Claude.
           </p>
         </div>

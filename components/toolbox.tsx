@@ -312,7 +312,7 @@ export function Toolbox({ categories }: { categories?: CategoryData[] }) {
         <div data-tb-header className="tb__head">
           <h2 className="tb__title">The Toolbox</h2>
           <p className="tb__lede">
-            What I actually reach for — {data.reduce((n, c) => n + c.tools.length, 0)} tools
+            What I actually reach for: {data.reduce((n, c) => n + c.tools.length, 0)} tools
             across {data.length} disciplines. Open a drawer.
           </p>
         </div>

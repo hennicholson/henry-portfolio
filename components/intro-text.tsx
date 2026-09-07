@@ -9,7 +9,7 @@ import { useVideoVisibility } from "@/lib/use-video-visibility";
 gsap.registerPlugin(ScrollTrigger);
 
 const paragraph =
-  "I\u2019ve been building things on the internet since I was 13 years old. What started as curiosity became an obsession \u2014 I taught myself to code, shipped my first SaaS product at 17, and went full-time at 19. Now I\u2019m building tools that help others bring their ideas to life.";
+  "I\u2019ve been building things on the internet since I was 13 years old. What started as curiosity became an obsession. I taught myself to code, shipped my first SaaS product at 17, and went full-time at 19. Now I\u2019m building tools that help others bring their ideas to life.";
 
 const drawAnnotations: Record<string, "circle" | "wavy" | "straight"> = {
   "13": "circle",
@@ -141,7 +141,7 @@ export function IntroText() {
       <div ref={containerRef} className="w-[90vw] max-w-4xl mx-auto px-4 md:px-6 relative">
         <video
           ref={cakeRef}
-          src="/cake-spin.webm"
+          src="/cake-spin-sm.webm"
           autoPlay muted loop playsInline
           onClick={handleCakeClick}
           className="absolute -top-16 -right-8 md:-top-20 md:-right-12 w-36 md:w-48 cursor-pointer z-20"
