@@ -566,8 +566,7 @@
    momentum for free; the pointer handlers add the same feel for a mouse. */
 .pj__rail {
   --pj-slide-w: 150;
-  display: flex;
-  gap: var(--pj-space-2xs);
+  display: block;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
@@ -599,6 +598,28 @@
 
 .pj__rail::-webkit-scrollbar {
   display: none;
+}
+
+/* the moving part: cards plus cloned sets, slid by the drift */
+.pj__track {
+  position: relative;
+  display: flex;
+  gap: var(--pj-space-2xs);
+  width: max-content;
+  will-change: transform;
+}
+
+/* a mouse drag across the strip must scroll it, never start a native image
+   drag from a thumbnail (that fired pointercancel and dropped the stroke) */
+.pj__track img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* the drift owns the position, so nothing may snap or smooth it */
+.pj__rail[data-drift="true"] {
+  scroll-snap-type: none;
+  scroll-behavior: auto;
 }
 
 .pj__rail[data-dragging="true"] {
@@ -789,7 +810,8 @@
   transform: translateY(0);
 }
 
-.pj__item[aria-selected="true"] {
+.pj__item[aria-selected="true"],
+.pj__item[data-selected="true"] {
   opacity: 1;
   border-color: var(--pj-accent);
   background: var(--pj-paper-3);
@@ -797,15 +819,18 @@
   box-shadow: 0 0 0 1px var(--pj-accent-dim), 0 10px 30px -12px var(--pj-backdrop);
 }
 
-.pj__item[aria-selected="true"] .pj__card-thumb {
+.pj__item[aria-selected="true"] .pj__card-thumb,
+.pj__item[data-selected="true"] .pj__card-thumb {
   filter: none;
 }
 
-.pj__item[aria-selected="true"] .pj__card-idx {
+.pj__item[aria-selected="true"] .pj__card-idx,
+.pj__item[data-selected="true"] .pj__card-idx {
   color: var(--pj-accent);
 }
 
-.pj__item[aria-selected="true"] .pj__card-icon {
+.pj__item[aria-selected="true"] .pj__card-icon,
+.pj__item[data-selected="true"] .pj__card-icon {
   color: var(--pj-accent);
   opacity: 0.95;
 }

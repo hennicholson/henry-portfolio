@@ -100,6 +100,13 @@ const IDLE_MS = 9000;
  *  cost nothing. Manual picks skip the wait. */
 const DWELL_MS = 2000;
 
+/** The card strip drifts on its own like a slow marquee. Hovering, touching
+ *  or focusing it hands the strip to the visitor; the drift resumes a beat
+ *  after they leave. */
+const DRIFT_PX_PER_S = 24;
+const DRIFT_RESUME_MS = 1200;
+const DRIFT_RESUME_TOUCH_MS = 2500;
+
 /** How long before we admit the preview is taking a while. Never a kill-timer. */
 const SLOW_AFTER_MS = 8000;
 
@@ -182,6 +189,9 @@ export function ProjectStage({ projects }: ProjectStageProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const frameBoxRef = useRef<HTMLDivElement | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const railHeldRef = useRef(false);
+  const railHoverRef = useRef(false);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
 
@@ -450,16 +460,27 @@ export function ProjectStage({ projects }: ProjectStageProps) {
      while you were trying to read it. */
   useEffect(() => {
     const rail = railRef.current;
-    const slide = tabRefs.current[selected];
-    if (!rail || !slide) return;
+    const track = trackRef.current;
+    /* while the strip drifts on its own, the drift is the motion */
+    if (!rail || !track || !railHeldRef.current) return;
 
-    const left = slide.offsetLeft - rail.scrollLeft;
-    const right = left + slide.clientWidth;
-    if (left >= 0 && right <= rail.clientWidth) return;
-
-    const target = slide.offsetLeft - (rail.clientWidth - slide.clientWidth) / 2;
+    /* the strip holds clones; any copy of the slide counts as "in view",
+       and the nearest copy is the one to bring in */
+    let nearest: HTMLElement | null = null;
+    let best = Infinity;
+    for (const copy of track.querySelectorAll<HTMLElement>(`[data-index="${selected}"]`)) {
+      const left = copy.offsetLeft - rail.scrollLeft;
+      if (left >= 0 && left + copy.clientWidth <= rail.clientWidth) return;
+      const centred = copy.offsetLeft - (rail.clientWidth - copy.clientWidth) / 2;
+      const dist = Math.abs(centred - rail.scrollLeft);
+      if (dist < best) {
+        best = dist;
+        nearest = copy;
+      }
+    }
+    if (!nearest) return;
     rail.scrollTo({
-      left: Math.max(0, target),
+      left: Math.max(0, nearest.offsetLeft - (rail.clientWidth - nearest.clientWidth) / 2),
       behavior: prefersReducedMotion ? "auto" : "smooth",
     });
   }, [selected, prefersReducedMotion]);
@@ -476,6 +497,100 @@ export function ProjectStage({ projects }: ProjectStageProps) {
     },
     [select, projects.length],
   );
+
+  /* ── Marquee drift ────────────────────────────────────────────────────
+     While nobody is on the strip the track slides under a transform. The
+     moment someone is (hover, touch, focus, wheel) the drift stops and its
+     position is handed to real scrollLeft, so the strip is a plain native
+     scroller for the visitor: wheel, drag, touch and arrow keys all work. */
+  const [railHeld, setRailHeld] = useState(false);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ownScrolls = useRef(0);
+  const [cloneSets, setCloneSets] = useState(1);
+  const cloneEnabled = !prefersReducedMotion && projects.length > 1;
+
+  const holdRail = useCallback(() => {
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = null;
+    railHeldRef.current = true;
+    setRailHeld(true);
+  }, []);
+  const releaseRail = useCallback((after: number) => {
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => {
+      railHeldRef.current = false;
+      setRailHeld(false);
+    }, after);
+  }, []);
+  useEffect(() => () => { if (resumeTimer.current) clearTimeout(resumeTimer.current); }, []);
+
+  /* a scroll we did not cause is the visitor (touch flick, trackpad) */
+  const onRailScroll = useCallback(() => {
+    if (ownScrolls.current > 0) {
+      ownScrolls.current -= 1;
+      return;
+    }
+    holdRail();
+    if (!railHoverRef.current) releaseRail(DRIFT_RESUME_TOUCH_MS);
+  }, [holdRail, releaseRail]);
+
+  /* enough cloned sets after the real one to cover the rail, so the wrap
+     never exposes an empty edge */
+  useEffect(() => {
+    const rail = railRef.current;
+    const track = trackRef.current;
+    if (!rail || !track || !cloneEnabled) return;
+    const measure = () => {
+      const first = track.children[0] as HTMLElement | undefined;
+      const clone = track.children[projects.length] as HTMLElement | undefined;
+      if (!first || !clone) return;
+      const setWidth = clone.getBoundingClientRect().left - first.getBoundingClientRect().left;
+      if (setWidth > 0) setCloneSets(Math.max(1, Math.ceil(rail.clientWidth / setWidth)));
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(rail);
+    return () => ro.disconnect();
+  }, [cloneEnabled, projects.length]);
+
+  const drifting =
+    cloneEnabled && autoplay === "on" && inView && !tabHidden && !dialogOpen && !railHeld && !dragging;
+
+  useEffect(() => {
+    if (!drifting) return;
+    const rail = railRef.current;
+    const track = trackRef.current;
+    if (!rail || !track) return;
+    const first = track.children[0] as HTMLElement | undefined;
+    const clone = track.children[projects.length] as HTMLElement | undefined;
+    if (!first || !clone) return;
+    const setWidth = clone.getBoundingClientRect().left - first.getBoundingClientRect().left;
+    if (setWidth <= 0) return;
+
+    const write = (left: number) => {
+      const before = rail.scrollLeft;
+      rail.scrollLeft = left;
+      if (rail.scrollLeft !== before) ownScrolls.current += 1;
+    };
+
+    // pick up from wherever the visitor left the strip
+    let pos = rail.scrollLeft % setWidth;
+    write(0);
+    let last = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      pos = (pos + (DRIFT_PX_PER_S * (now - last)) / 1000) % setWidth;
+      last = now;
+      track.style.transform = `translate3d(${-pos}px, 0, 0)`;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      track.style.transform = "";
+      write(pos);
+    };
+  }, [drifting, projects.length, cloneSets]);
 
   const frameState: FrameState = !settled
     ? "idle"
@@ -502,6 +617,74 @@ export function ProjectStage({ projects }: ProjectStageProps) {
   const autoplayOn = autoplay === "on" && !prefersReducedMotion && projects.length > 1;
   const rotating = autoplayOn && idle && inView && !hovering && !tabHidden;
   const autoplayState = !autoplayOn ? "off" : rotating ? "on" : "paused";
+
+  /* One card, real (copy 0) or a visual clone in the looped strip. Clones
+     carry no ids, roles or focus: they exist so the drift can wrap. */
+  const renderCard = (project: ProjectData, index: number, copy: number) => {
+    const clone = copy > 0;
+    const Icon = PROJECT_ICONS[project.id] ?? Globe;
+    return (
+      <button
+        key={clone ? `${project.id}-c${copy}` : project.id}
+        type="button"
+        role={clone ? undefined : "tab"}
+        data-index={index}
+        id={clone ? undefined : `${baseId}-tab-${index}`}
+        aria-selected={clone ? undefined : index === selected}
+        data-selected={clone && index === selected ? "true" : undefined}
+        aria-hidden={clone ? true : undefined}
+        aria-controls={clone ? undefined : `${baseId}-panel-${index}`}
+        tabIndex={!clone && index === selected ? 0 : -1}
+        ref={
+          clone
+            ? undefined
+            : (node) => {
+                tabRefs.current[index] = node;
+              }
+        }
+        className="pj__item"
+        /* The browser scrolls a newly focused element into view,
+           and for a slide inside a horizontal scroller that drags
+           the whole PAGE down. Take focus ourselves instead. */
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={(event) => {
+          // a drag shouldn't select whatever it finished over
+          if (drag.current.moved > 6) return;
+          select(index, { manual: true });
+          if (!clone) event.currentTarget.focus({ preventScroll: true });
+        }}
+      >
+        {index === selected && rotating && settled && (
+          <span
+            key={selected}
+            className="pj__progress"
+            onAnimationEnd={clone ? undefined : () => select(selectedRef.current + 1)}
+            aria-hidden="true"
+          />
+        )}
+        <span className="pj__card-thumb">
+          {project.thumbnail ? (
+            <img src={project.thumbnail} alt="" loading="lazy" decoding="async" draggable={false} />
+          ) : (
+            <span className="pj__card-fallback" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          )}
+          <span className="pj__card-veil" aria-hidden="true" />
+          <Icon className="pj__card-icon" size={13} aria-hidden="true" />
+          <span className="pj__card-foot">
+            <span className="pj__card-idx" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="pj__item-label">{project.title}</span>
+          </span>
+        </span>
+        <span className="pj__item-num" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      </button>
+    );
+  };
 
   return (
     <section
@@ -747,79 +930,54 @@ export function ProjectStage({ projects }: ProjectStageProps) {
               <div
                 ref={railRef}
                 className="pj__rail"
+                data-drift={cloneEnabled ? "true" : undefined}
                 data-dragging={dragging}
                 role="tablist"
                 aria-label="Projects"
                 aria-orientation="horizontal"
                 onKeyDown={onRailKeyDown}
-                onPointerDown={onRailPointerDown}
+                onScroll={onRailScroll}
+                onPointerEnter={(event) => {
+                  if (event.pointerType === "touch") return;
+                  railHoverRef.current = true;
+                  holdRail();
+                }}
+                onPointerLeave={(event) => {
+                  endDrag();
+                  if (event.pointerType === "touch") return;
+                  railHoverRef.current = false;
+                  releaseRail(DRIFT_RESUME_MS);
+                }}
+                onPointerDown={(event) => {
+                  holdRail();
+                  onRailPointerDown(event);
+                }}
                 onPointerMove={onRailPointerMove}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
-                onPointerLeave={endDrag}
+                onPointerUp={(event) => {
+                  endDrag();
+                  if (event.pointerType === "touch") releaseRail(DRIFT_RESUME_TOUCH_MS);
+                }}
+                onPointerCancel={(event) => {
+                  endDrag();
+                  if (event.pointerType === "touch") releaseRail(DRIFT_RESUME_TOUCH_MS);
+                }}
+                onFocusCapture={holdRail}
+                onBlurCapture={(event) => {
+                  if (
+                    !event.currentTarget.contains(event.relatedTarget as Node | null) &&
+                    !railHoverRef.current
+                  ) {
+                    releaseRail(DRIFT_RESUME_MS);
+                  }
+                }}
               >
-                {projects.map((project, index) => {
-                  /* Tiles are posters only. They used to run the selected site
-                     and both neighbours live (the selected one twice, counting
-                     the stage), which was most of the section's network and
-                     decode cost for a 218px miniature. */
-                  const Icon = PROJECT_ICONS[project.id] ?? Globe;
-
-                  return (
-                    <button
-                      key={project.id}
-                      type="button"
-                      role="tab"
-                      id={`${baseId}-tab-${index}`}
-                      aria-selected={index === selected}
-                      aria-controls={`${baseId}-panel-${index}`}
-                      tabIndex={index === selected ? 0 : -1}
-                      ref={(node) => {
-                        tabRefs.current[index] = node;
-                      }}
-                      className="pj__item"
-                      /* The browser scrolls a newly focused element into view,
-                         and for a slide inside a horizontal scroller that drags
-                         the whole PAGE down. Take focus ourselves instead. */
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={(event) => {
-                        // a drag shouldn't select whatever it finished over
-                        if (drag.current.moved > 6) return;
-                        select(index, { manual: true });
-                        event.currentTarget.focus({ preventScroll: true });
-                      }}
-                    >
-                      {index === selected && rotating && settled && (
-                        <span
-                          key={selected}
-                          className="pj__progress"
-                          onAnimationEnd={() => select(selectedRef.current + 1)}
-                          aria-hidden="true"
-                        />
-                      )}
-                      <span className="pj__card-thumb">
-                        {project.thumbnail ? (
-                          <img src={project.thumbnail} alt="" loading="lazy" decoding="async" />
-                        ) : (
-                          <span className="pj__card-fallback" aria-hidden="true">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                        )}
-                        <span className="pj__card-veil" aria-hidden="true" />
-                        <Icon className="pj__card-icon" size={13} aria-hidden="true" />
-                        <span className="pj__card-foot">
-                          <span className="pj__card-idx" aria-hidden="true">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                          <span className="pj__item-label">{project.title}</span>
-                        </span>
-                      </span>
-                      <span className="pj__item-num" aria-hidden="true">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    </button>
-                  );
-                })}
+                <div ref={trackRef} className="pj__track">
+                  {projects.map((project, index) => renderCard(project, index, 0))}
+                  {cloneEnabled &&
+                    Array.from({ length: cloneSets }, (_, set) =>
+                      projects.map((project, index) => renderCard(project, index, set + 1)),
+                    )}
+                </div>
               </div>
             </div>
           </div>

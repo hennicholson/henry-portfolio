@@ -182,44 +182,102 @@
 
 .tb__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
   gap: var(--tb-space-2xs);
   padding-bottom: var(--tb-space-md);
 }
 
 /* ── Tool card — the slide treatment from the work section ────────────── */
+/* ── Tool plates ──────────────────────────────────────────────────────────
+   Each tool is a small machined plate: brushed face, chamfer highlight, a
+   hex-nut socket holding the brand mark, and a cog in the corner that turns
+   when you hover. */
 .tb__tool {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--tb-space-2xs);
   min-width: 0;
-  padding: var(--tb-space-2xs) var(--tb-space-xs);
+  padding: 5px 28px 5px 5px;
   border: 1px solid var(--tb-rule);
-  border-radius: 8px;
-  background: var(--tb-paper-2);
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(115deg, oklch(1 0 0 / 0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--tb-paper-3), var(--tb-paper-2));
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.06),
+    inset 0 -1px 0 oklch(0 0 0 / 0.35),
+    0 1px 2px oklch(0 0 0 / 0.35);
+  overflow: hidden;
   transition: border-color var(--tb-dur) var(--tb-ease-out),
-    background-color var(--tb-dur) var(--tb-ease-out),
-    transform var(--tb-dur) var(--tb-ease-out);
+    transform var(--tb-dur) var(--tb-ease-out),
+    box-shadow var(--tb-dur) var(--tb-ease-out);
+}
+
+.tb__tool-socket {
+  position: relative;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  clip-path: polygon(25% 2%, 75% 2%, 98% 50%, 75% 98%, 25% 98%, 2% 50%);
+  background: linear-gradient(160deg, oklch(0.44 0.012 275), oklch(0.22 0.01 275));
+  transition: background var(--tb-dur) var(--tb-ease-out);
+}
+.tb__tool-socket::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  clip-path: polygon(25% 2%, 75% 2%, 98% 50%, 75% 98%, 25% 98%, 2% 50%);
+  background: linear-gradient(180deg, oklch(0.15 0.008 275), oklch(0.2 0.009 275));
+}
+
+.tb__tool-logo {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  color: var(--tb-ink);
+  opacity: 0.85;
+  transition: opacity var(--tb-dur) var(--tb-ease-out);
+}
+
+.tb__tool-gear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  translate: 0 -50%;
+  color: var(--tb-muted);
+  opacity: 0.35;
+  transition: transform 0.6s var(--tb-ease-out),
+    opacity var(--tb-dur) var(--tb-ease-out),
+    color var(--tb-dur) var(--tb-ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .tb__tool:hover {
+    /* above the neighbours so the lift and shadow are never painted under
+       the plates to the right and below */
+    z-index: 1;
     border-color: var(--tb-accent-dim);
-    background: var(--tb-paper-3);
     transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.08),
+      inset 0 -1px 0 oklch(0 0 0 / 0.35),
+      0 6px 16px oklch(0 0 0 / 0.35);
   }
   .tb__tool:hover .tb__tool-logo {
     opacity: 1;
   }
-}
-
-.tb__tool-logo {
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  opacity: 0.75;
-  transition: opacity var(--tb-dur) var(--tb-ease-out);
+  .tb__tool:hover .tb__tool-socket {
+    background: linear-gradient(160deg, var(--tb-accent), oklch(0.5 0.1 68));
+  }
+  .tb__tool:hover .tb__tool-gear {
+    transform: rotate(90deg);
+    opacity: 0.9;
+    color: var(--tb-accent);
+  }
 }
 
 .tb__tool-text {
@@ -265,5 +323,20 @@
 @media (min-width: 768px) {
   .tb {
     padding-block: 5rem;
+  }
+}
+
+
+/* Phones: two plates per row, cog dropped (no hover to turn it) so the
+   longest names still fit. */
+@media (max-width: 767px) {
+  .tb__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tb__tool {
+    padding-right: 8px;
+  }
+  .tb__tool-gear {
+    display: none;
   }
 }

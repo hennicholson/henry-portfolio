@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
+import { Cog, Wrench } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { soundEngine } from "@/lib/sounds";
@@ -67,22 +68,29 @@ const fallbackCategories: CategoryData[] = [
   },
 ];
 
+/* A tool plate: hex-nut socket holding the brand mark, name + note, and a
+   cog in the corner that turns on hover. Tools without a mark get a wrench. */
 function ToolChip({ tool }: { tool: ToolData }) {
   return (
     <div className="tb__tool">
-      {tool.logoUrl && (
-        <Image
-          src={tool.logoUrl}
-          alt=""
-          width={18}
-          height={18}
-          className="tb__tool-logo"
-        />
-      )}
+      <span className="tb__tool-socket" aria-hidden="true">
+        {tool.logoUrl ? (
+          <Image
+            src={tool.logoUrl}
+            alt=""
+            width={16}
+            height={16}
+            className="tb__tool-logo"
+          />
+        ) : (
+          <Wrench className="tb__tool-logo" size={14} strokeWidth={2.2} />
+        )}
+      </span>
       <span className="tb__tool-text">
         <span className="tb__tool-name">{tool.name}</span>
         <span className="tb__tool-note">{tool.note}</span>
       </span>
+      <Cog className="tb__tool-gear" size={13} strokeWidth={2} aria-hidden="true" />
     </div>
   );
 }
@@ -102,16 +110,23 @@ function Drawer({
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!contentRef.current) return;
+    const panel = contentRef.current;
+    if (!panel) return;
+    /* The panel only needs to clip while its height is animating. Left on,
+       it sliced the lift and shadow off every plate on the top row. */
     if (isOpen) {
-      gsap.to(contentRef.current, {
+      gsap.to(panel, {
         height: "auto",
         opacity: 1,
         duration: 0.45,
         ease: "power3.out",
+        onComplete: () => {
+          panel.style.overflow = "visible";
+        },
       });
     } else {
-      gsap.to(contentRef.current, {
+      panel.style.overflow = "hidden";
+      gsap.to(panel, {
         height: 0,
         opacity: 0,
         duration: 0.3,
