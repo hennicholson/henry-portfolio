@@ -85,12 +85,12 @@ export function NewsletterCTA() {
     <section ref={sectionRef} className="relative py-10 md:py-20">
       <div className="w-[90vw] max-w-6xl mx-auto px-4 md:px-6">
         <div
-          className="relative grid grid-cols-1 md:grid-cols-[1fr_1.15fr] gap-12 md:gap-0 items-center
-            md:before:content-[''] md:before:absolute md:before:left-[46.5%] md:before:top-[-8%] md:before:bottom-[-8%] md:before:w-px md:before:bg-white/[0.07]
-            md:after:content-[''] md:after:absolute md:after:left-[46.5%] md:after:top-1/2 md:after:w-[3px] md:after:h-[3px] md:after:-translate-x-1/2 md:after:-translate-y-1/2 md:after:rounded-full md:after:bg-white/25"
+          className="relative grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-0 items-center
+            lg:before:content-[''] lg:before:absolute lg:before:left-[46.5%] lg:before:top-[-8%] lg:before:bottom-[-8%] lg:before:w-px lg:before:bg-white/[0.07]
+            lg:after:content-[''] lg:after:absolute lg:after:left-[46.5%] lg:after:top-1/2 lg:after:w-[3px] lg:after:h-[3px] lg:after:-translate-x-1/2 lg:after:-translate-y-1/2 lg:after:rounded-full lg:after:bg-white/25"
         >
           {/* Left: the pitch and the form */}
-          <div ref={leftRef} className="md:pr-12">
+          <div ref={leftRef} className="lg:pr-12">
             <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-white/25 mb-5 block">
               Newsletter
             </span>
@@ -152,7 +152,7 @@ export function NewsletterCTA() {
           {/* Right: the sealed issue */}
           <div
             ref={rightRef}
-            className="relative md:pl-12"
+            className="relative lg:pl-12"
             onPointerEnter={(event) => {
               if (event.pointerType !== "touch" && !submitted) setOpen(true);
             }}

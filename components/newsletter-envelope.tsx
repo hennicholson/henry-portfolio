@@ -46,32 +46,46 @@ export function NewsletterEnvelope({ open, stamp, onTap }: Props) {
       const inside = q(".nle-inside")[0] as HTMLElement | undefined;
       const flap = q(".nle-flap")[0] as HTMLElement | undefined;
       const seal = q(".nle-seal")[0] as HTMLElement | undefined;
+      const flapPrint = q(".nle-flap-label, .nle-flap-issue") as HTMLElement[];
       if (!env || !letter || !inside || !flap || !seal) return;
 
-      gsap.set([letter, inside, flap, seal], { clearProps: "all" });
+      gsap.set([letter, inside, flap, seal, ...flapPrint], { clearProps: "all" });
 
+      const envWidth = env.offsetWidth;
       const envHeight = env.offsetHeight;
       const insideScale = 0.76;
       const insideTop = envHeight * 0.12;
-      const clearedY = -(letter.offsetHeight * insideScale + insideTop + 12);
-      const restingY = -(env.offsetTop + insideTop);
+      /* The letter rises only until its top meets the scene's top edge (which
+         is also where it rests), so the motion never leaves the section. At
+         that point the pocket still hides its lower part along the V, so the
+         letter takes a matching V clip, comes to the front, and the clip opens
+         as it tilts forward and grows into place. */
+      const peakY = -(env.offsetTop + insideTop);
+      const scaledH = letter.offsetHeight * insideScale;
+      const scaledW = letter.offsetWidth * insideScale;
+      const letterTopAtSwap = -env.offsetTop; // in envelope coordinates
+      const vAtEdge = envHeight * 0.52 * ((envWidth - scaledW) / envWidth);
+      const vAtCentre = envHeight * 0.52;
+      const pct = (y: number) => Math.min(100, Math.max(0, ((y - letterTopAtSwap) / scaledH) * 100)).toFixed(2);
+      const vClip = `polygon(0 0, 100% 0, 100% ${pct(vAtEdge)}%, 50% ${pct(vAtCentre)}%, 0 ${pct(vAtEdge)}%)`;
+      const fullClip = "polygon(0 0, 100% 0, 100% 100%, 50% 100%, 0 100%)";
 
       gsap.set(letter, { scale: insideScale, transformOrigin: "50% 0%" });
 
       const tl = gsap.timeline({ paused: true, defaults: { ease: "power2.inOut" } });
       tl.to(seal, { opacity: 0, scale: 0.6, duration: 0.25 }, 0)
         .to(flap, { rotateX: -180, duration: 0.7 }, 0.15)
+        /* the print is on the outside of the flap: gone once it turns past vertical */
+        .to(flapPrint, { opacity: 0, duration: 0.12 }, 0.45)
         .set(flap, { zIndex: 0 }, 0.5)
-        .to(letter, { y: clearedY, duration: 0.8 }, 0.5)
-        /* the letter has cleared the pocket: stop clipping, come to the front */
-        .set(inside, { clipPath: "none", zIndex: 4 }, 1.3)
-        .to(flap, { opacity: 0, duration: 0.3 }, 1.3)
-        .to(
-          letter,
-          { y: restingY, x: 8, scale: 1, rotation: 6, duration: 0.9, ease: "power3.out" },
-          1.3,
-        )
-        .to(env, { boxShadow: "0 40px 90px -30px rgba(0, 0, 0, 0.95)", duration: 0.6 }, 1.3);
+        .to(letter, { y: peakY, duration: 0.75 }, 0.45)
+        .set(letter, { clipPath: vClip }, 1.2)
+        .set(inside, { clipPath: "none", zIndex: 4 }, 1.2)
+        .to(flap, { opacity: 0, duration: 0.3 }, 1.2)
+        .to(letter, { x: 8, scale: 1, rotation: 6, duration: 0.9, ease: "power3.out" }, 1.2)
+        .to(letter, { clipPath: fullClip, duration: 0.65, ease: "power2.out" }, 1.2)
+        .set(letter, { clipPath: "none" }, 1.9)
+        .to(env, { boxShadow: "0 40px 90px -30px rgba(0, 0, 0, 0.95)", duration: 0.6 }, 1.2);
 
       tl.progress(openRef.current ? 1 : 0);
       tlRef.current = tl;
