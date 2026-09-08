@@ -4,42 +4,31 @@ import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { soundEngine } from "@/lib/sounds";
+import { NewsletterEnvelope } from "@/components/newsletter-envelope";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const topics = [
-  "Prompting patterns that actually work",
-  "Context window strategies for complex tasks",
-  "Building AI agents that don't hallucinate",
-];
+const TITLE = "Context Engineering";
 
 export function NewsletterCTA() {
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState("");
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const sealRef = useRef<HTMLDivElement>(null);
-  const formRowRef = useRef<HTMLDivElement>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  /* envelope: pulled open on hover (desktop) or tap (touch); after a
+     subscribe it closes and takes the seal, and stays closed */
+  const [open, setOpen] = useState(false);
+  const [stamp, setStamp] = useState(0);
 
   useEffect(() => {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      if (leftRef.current) {
-        gsap.set(leftRef.current, { opacity: 0, x: -30 });
-      }
-      if (rightRef.current) {
-        gsap.set(rightRef.current, { opacity: 0, x: 30 });
-      }
-
-      // Topic items
-      const topicItems = sectionRef.current!.querySelectorAll("[data-topic-item]");
-      gsap.set(topicItems, { opacity: 0, y: 12 });
-
-      // Badges — start invisible
-      const badges = sectionRef.current!.querySelectorAll("[data-badge]");
-      gsap.set(badges, { opacity: 0, scale: 2.5 });
+      if (leftRef.current) gsap.set(leftRef.current, { opacity: 0, x: -30 });
+      if (rightRef.current) gsap.set(rightRef.current, { opacity: 0, y: 24 });
 
       ScrollTrigger.create({
         trigger: sectionRef.current,
@@ -59,24 +48,8 @@ export function NewsletterCTA() {
             });
           }
           if (rightRef.current) {
-            gsap.to(rightRef.current, { opacity: 1, x: 0, duration: 0.7, delay: 0.15, ease: "power3.out" });
+            gsap.to(rightRef.current, { opacity: 1, y: 0, duration: 0.9, delay: 0.2, ease: "power3.out" });
           }
-          gsap.to(topicItems, {
-            opacity: 1,
-            y: 0,
-            duration: 0.5,
-            stagger: 0.15,
-            delay: 0.4,
-            ease: "power2.out",
-          });
-          gsap.to(badges, {
-            opacity: 1,
-            scale: 1,
-            duration: 0.5,
-            stagger: 0.2,
-            delay: 0.9,
-            ease: "power3.out",
-          });
         },
         once: true,
       });
@@ -84,57 +57,6 @@ export function NewsletterCTA() {
 
     return () => ctx.revert();
   }, []);
-
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Animate seal in when submitted
-  useEffect(() => {
-    if (!submitted || !sealRef.current) return;
-    const seal = sealRef.current;
-
-    soundEngine.play("chime");
-    gsap.fromTo(seal,
-      { opacity: 0, scale: 1.6, rotation: -15 },
-      { opacity: 1, scale: 1, rotation: 0, duration: 0.3, ease: "back.out(1.4)" }
-    );
-
-    // Gold shimmer particles
-    const timer1 = setTimeout(() => {
-      const rect = seal.getBoundingClientRect();
-      for (let i = 0; i < 6; i++) {
-        const dot = document.createElement("div");
-        const size = 3 + Math.random() * 4;
-        dot.style.cssText = `position:fixed;left:${rect.left + rect.width / 2}px;top:${rect.top + rect.height / 2}px;width:${size}px;height:${size}px;border-radius:50%;background:rgba(200,170,80,0.6);pointer-events:none;z-index:100;`;
-        document.body.appendChild(dot);
-        gsap.to(dot, {
-          x: (Math.random() - 0.5) * 100,
-          y: (Math.random() - 0.5) * 80,
-          opacity: 0,
-          scale: 0.2,
-          duration: 0.6 + Math.random() * 0.4,
-          ease: "power2.out",
-          onComplete: () => dot.remove(),
-        });
-      }
-    }, 150);
-
-    // Fade out and reset
-    const timer2 = setTimeout(() => {
-      gsap.to(seal, {
-        opacity: 0,
-        scale: 0.9,
-        duration: 0.4,
-        ease: "power2.in",
-        onComplete: () => setSubmitted(false),
-      });
-    }, 3500);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, [submitted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,9 +72,8 @@ export function NewsletterCTA() {
       });
       setEmail("");
       setSubmitted(true);
-
-      // Animation happens in useEffect when submitted changes
-
+      setOpen(false);
+      setStamp((n) => n + 1);
     } catch {
       // silently fail
     } finally {
@@ -162,126 +83,90 @@ export function NewsletterCTA() {
 
   return (
     <section ref={sectionRef} className="relative py-10 md:py-20">
-      <div className="w-[90vw] max-w-5xl mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 items-center">
-          {/* Left — CTA */}
-          <div ref={leftRef} className="md:col-span-3">
-            <span className="text-[10px] font-mono tracking-[0.25em] uppercase text-white/20 mb-4 block">
+      <div className="w-[90vw] max-w-6xl mx-auto px-4 md:px-6">
+        <div
+          className="relative grid grid-cols-1 md:grid-cols-[1fr_1.15fr] gap-12 md:gap-0 items-center
+            md:before:content-[''] md:before:absolute md:before:left-[46.5%] md:before:top-[-8%] md:before:bottom-[-8%] md:before:w-px md:before:bg-white/[0.07]
+            md:after:content-[''] md:after:absolute md:after:left-[46.5%] md:after:top-1/2 md:after:w-[3px] md:after:h-[3px] md:after:-translate-x-1/2 md:after:-translate-y-1/2 md:after:rounded-full md:after:bg-white/25"
+        >
+          {/* Left: the pitch and the form */}
+          <div ref={leftRef} className="md:pr-12">
+            <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-white/25 mb-5 block">
               Newsletter
             </span>
-            <h2 data-typewriter className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-3">
-              {"Context Engineering".split("").map((ch, i) => (
-                <span key={i} data-tw-char className="inline-block" style={{ opacity: 0 }}>
-                  {ch === " " ? "\u00A0" : ch}
+            <h2 data-typewriter className="text-4xl md:text-5xl lg:text-[3.25rem] font-bold text-white tracking-tight leading-[1.05] mb-4">
+              {/* each word is one unbreakable box; the letters inside are the
+                  typewriter's targets, revealed in document order */}
+              {TITLE.split(" ").map((word, w, words) => (
+                <span key={word} className="inline-block whitespace-nowrap">
+                  {word.split("").map((ch, i) => (
+                    <span key={i} data-tw-char className="inline-block" style={{ opacity: 0 }}>
+                      {ch}
+                    </span>
+                  ))}
+                  {w < words.length - 1 ? "\u00A0" : null}
                 </span>
               ))}
             </h2>
-            <p className="text-sm md:text-base text-white/35 leading-relaxed mb-6 max-w-md">
+            <p className="text-base md:text-lg text-white/45 leading-relaxed mb-7 max-w-md">
               A weekly breakdown of how to build better with AI. Prompting strategies, agent architectures, and the context patterns that separate good outputs from great ones.
             </p>
 
-            <div ref={formRowRef} className="relative max-w-sm" style={{ minHeight: "44px" }}>
-              {/* Form — hidden during seal animation */}
-              <form
-                onSubmit={handleSubmit}
-                className="flex gap-2 items-center"
-                style={{ visibility: submitted ? "hidden" : "visible" }}
-              >
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 rounded-lg px-4 py-2.5 text-sm text-white outline-none transition-colors duration-300 focus:border-white/20"
-                  style={{
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                  }}
-                />
-                <button
-                  ref={buttonRef}
-                  type="submit"
-                  data-magnetic
-                  disabled={submitting}
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 shrink-0 overflow-hidden whitespace-nowrap"
-                  style={{
-                    background: "white",
-                    color: "#050508",
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.9)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "white"; }}
+            <div className="relative max-w-md" style={{ minHeight: "46px" }}>
+              {submitted ? (
+                <p
+                  className="text-[11px] font-mono tracking-[0.25em] uppercase pt-3"
+                  style={{ color: "rgba(200,170,80,0.6)" }}
                 >
-                  {submitting ? "..." : "Subscribe"}
-                </button>
-              </form>
-
-              {/* Wax seal — replaces form on submit */}
-              {submitted && (
-                <div
-                  ref={sealRef}
-                  className="absolute inset-0 z-10 flex items-center justify-center"
-                  style={{ opacity: 0 }}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <img
-                      src="/wax-seal.png"
-                      alt="HN wax seal"
-                      width={72}
-                      height={72}
-                      className="drop-shadow-[0_6px_24px_rgba(180,140,60,0.5)]"
-                    />
-                    <span
-                      className="text-[10px] font-mono tracking-[0.3em] uppercase"
-                      style={{ color: "rgba(200,170,80,0.5)" }}
-                    >
-                      Sealed
-                    </span>
-                  </div>
-                </div>
+                  Sealed. Next issue lands in your inbox.
+                </p>
+              ) : (
+                <form onSubmit={handleSubmit} className="flex gap-3 items-center">
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="flex-1 min-w-0 rounded-lg px-4 py-3 text-sm text-white outline-none transition-colors duration-300 focus:border-white/25"
+                    style={{
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    data-magnetic
+                    disabled={submitting}
+                    className="px-5 py-3 rounded-lg text-sm font-semibold transition-all duration-300 shrink-0 overflow-hidden whitespace-nowrap"
+                    style={{ background: "white", color: "#050508" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.9)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "white"; }}
+                  >
+                    {submitting ? "..." : "Subscribe"}
+                  </button>
+                </form>
               )}
             </div>
           </div>
 
-          {/* Right — What you'll get */}
-          <div ref={rightRef} className="md:col-span-2 relative">
-            <div
-              className="rounded-xl p-5 relative overflow-hidden"
-              style={{
-                background: "linear-gradient(180deg, rgba(12, 12, 20, 0.8) 0%, rgba(8, 8, 14, 0.9) 100%)",
-                border: "1px solid rgba(255,255,255,0.06)",
+          {/* Right: the sealed issue */}
+          <div
+            ref={rightRef}
+            className="relative md:pl-12"
+            onPointerEnter={(event) => {
+              if (event.pointerType !== "touch" && !submitted) setOpen(true);
+            }}
+            onPointerLeave={(event) => {
+              if (event.pointerType !== "touch") setOpen(false);
+            }}
+          >
+            <NewsletterEnvelope
+              open={open}
+              stamp={stamp}
+              onTap={() => {
+                if (!submitted) setOpen((o) => !o);
               }}
-            >
-              <span className="text-[9px] font-mono tracking-[0.25em] uppercase block mb-4 marquee-chrome-text">
-                What You&apos;ll Get
-              </span>
-
-              <div className="space-y-3 mb-5">
-                {topics.map((topic, i) => (
-                  <div key={i} data-topic-item className="flex items-start gap-2.5">
-                    <span className="text-[10px] font-mono text-white/15 mt-0.5 shrink-0">
-                      0{i + 1}
-                    </span>
-                    <p className="text-sm text-white/35 leading-relaxed">
-                      {topic}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div data-badges className="flex items-center gap-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                {["Free", "Weekly", "No spam"].map((badge, i) => (
-                  <span key={badge} className="flex items-center gap-3">
-                    {i > 0 && <span className="text-white/10">&middot;</span>}
-                    <span
-                      data-badge
-                      className="text-[9px] font-mono tracking-[0.2em] uppercase text-white/15"
-                    >
-                      {badge}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </div>
+            />
           </div>
         </div>
       </div>
